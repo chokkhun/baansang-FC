@@ -29,7 +29,7 @@
     border-bottom: 1px solid var(--line); position: sticky; top:0; z-index:20;
     background: linear-gradient(180deg, var(--pitch-dark) 70%, rgba(18,42,34,0.92)); backdrop-filter: blur(6px);
   }
-  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand{ display:flex; align-items:center; gap:14px; min-width:0; }
   .crest{
     width:52px; height:52px; border-radius:50%;
     background: radial-gradient(circle at 35% 30%, var(--pitch-mid), var(--pitch-dark) 75%);
@@ -38,7 +38,7 @@
     box-shadow: 0 0 0 3px rgba(227,178,60,0.08);
   }
   .brand-name{ font-family:'Prompt'; font-weight:800; font-size:19px; letter-spacing:0.3px; line-height:1.15;}
-  .brand-sub{ font-size:12px; color: rgba(246,243,233,0.55); margin-top:2px; letter-spacing:0.5px;}
+  .brand-sub{ font-size:12px; color: rgba(246,243,233,0.55); margin-top:2px; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .auth-btn{
     border:1px solid var(--line); background:transparent; color:rgba(246,243,233,0.75);
     font-size:12px; padding:7px 12px; border-radius:999px; cursor:pointer; flex-shrink:0; font-weight:600;
@@ -61,9 +61,10 @@
   .sb-div{ width:1px; background:var(--line); }
 
   nav.tabs{ display:flex; gap:6px; margin: 18px 16px 4px; background: rgba(255,255,255,0.04);
-    border-radius: 999px; padding:4px; border: 1px solid var(--line); }
-  nav.tabs button{ flex:1; border:none; background:transparent; color:rgba(246,243,233,0.6);
-    padding:9px 6px; border-radius:999px; font-size:13.5px; font-weight:600; cursor:pointer; transition: all .18s ease; }
+    border-radius: 999px; padding:4px; border: 1px solid var(--line); overflow-x:auto; scrollbar-width:none; }
+  nav.tabs::-webkit-scrollbar{ display:none; }
+  nav.tabs button{ flex:0 0 auto; border:none; background:transparent; color:rgba(246,243,233,0.6);
+    padding:9px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; transition: all .18s ease; white-space:nowrap; }
   nav.tabs button.active{ background: var(--gold); color:var(--ink); }
 
   main{ padding: 16px; max-width: 640px; margin: 0 auto; }
@@ -73,6 +74,7 @@
 
   .section-title{ font-size:15px; font-weight:700; margin: 4px 0 12px; display:flex; align-items:center; justify-content:space-between;}
   .section-title span.count{ font-weight:400; font-size:12.5px; color:rgba(246,243,233,0.5);}
+  .section-title .link-btn{ font-size:12px; font-weight:600; color:var(--gold); background:transparent; border:none; cursor:pointer; padding:0; }
 
   .card{ background: var(--card); border:1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
@@ -90,9 +92,10 @@
 
   .player-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); }
   .player-row:last-child{ border-bottom:none; }
-  .jersey{ width:38px; height:38px; border-radius:9px; background:var(--pitch-mid);
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  .jersey{ width:42px; height:42px; border-radius:10px; background:var(--pitch-mid);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
     font-family:'Prompt'; font-weight:800; font-size:15px; color:var(--chalk); border: 1px solid var(--line); }
+  .jersey img{ width:100%; height:100%; object-fit:cover; }
   .p-info{ flex:1; min-width:0; }
   .p-name{ font-weight:600; font-size:14.5px; }
   .p-meta{ font-size:12px; color:rgba(246,243,233,0.55); margin-top:2px; }
@@ -110,13 +113,13 @@
   .tx-meta{ font-size:11.5px; color:rgba(246,243,233,0.5); margin-top:2px; }
   .tx-amt{ font-family:'Prompt'; font-weight:700; font-size:14.5px; }
   .tx-amt.income{ color:#8FD4A8; } .tx-amt.expense{ color:#E08064; }
-  .mini-tag{ display:inline-block; font-size:10px; font-weight:600; background:rgba(227,178,60,0.15); color:var(--gold); padding:1px 7px; border-radius:999px; margin-left:6px; vertical-align:middle;}
-  .clip{ margin-left:4px; font-size:11px; text-decoration:none; }
 
   .filters{ display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;}
   .chip{ flex-shrink:0; font-size:12.5px; padding:6px 12px; border-radius:999px; border:1px solid var(--line);
     background:transparent; color:rgba(246,243,233,0.65); cursor:pointer;}
   .chip.active{ background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:600;}
+  .chip.cat-chip{ display:flex; align-items:center; gap:6px; }
+  .chip.cat-chip .x{ font-weight:700; opacity:0.6; }
 
   .fab{ position:fixed; right:18px; bottom:26px; z-index:30; width:56px; height:56px; border-radius:50%; border:none;
     background: var(--gold); color:var(--ink); font-size:26px; font-weight:700;
@@ -131,8 +134,9 @@
   .sheet h3{ margin:0 0 14px; font-size:17px; }
   .field{ margin-bottom:12px; }
   .field label{ display:block; font-size:12.5px; color:rgba(246,243,233,0.6); margin-bottom:5px;}
-  .field input, .field select{ width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--line);
+  .field input, .field select, .field textarea{ width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--line);
     border-radius:10px; padding:11px 12px; color:var(--chalk); font-size:14.5px; font-family:'Sarabun'; }
+  .field textarea{ min-height:90px; resize:vertical; }
   .field p.hint{ font-size:11.5px; color:rgba(246,243,233,0.45); margin:6px 2px 0; line-height:1.5;}
   .seg{ display:flex; gap:8px; }
   .seg button{ flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:transparent;
@@ -146,44 +150,43 @@
   .btn.danger{ background:rgba(224,128,100,0.15); color:#E08064; }
   .btn:disabled{ opacity:0.5; }
 
+  .photo-picker{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .photo-preview{ width:72px; height:72px; border-radius:14px; background:var(--pitch-mid); border:1px solid var(--line);
+    overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:24px; color:rgba(246,243,233,0.4); }
+  .photo-preview img{ width:100%; height:100%; object-fit:cover; }
+  .photo-actions{ display:flex; flex-direction:column; gap:6px; }
+  .photo-actions label.upload-btn{ display:inline-block; font-size:12.5px; font-weight:600; color:var(--gold);
+    border:1px solid var(--line); padding:7px 12px; border-radius:8px; cursor:pointer; text-align:center; }
+  .photo-actions input[type=file]{ display:none; }
+  .photo-actions .remove-btn{ font-size:11.5px; color:rgba(246,243,233,0.45); background:none; border:none; cursor:pointer; text-align:left; padding:0; }
+
   .empty{ text-align:center; padding: 40px 12px; color:rgba(246,243,233,0.45); font-size:13.5px; }
   .toast{ position:fixed; top:14px; left:50%; transform:translateX(-50%) translateY(-60px);
     background: var(--gold); color:var(--ink); padding:10px 18px; border-radius:999px;
     font-size:13px; font-weight:600; z-index:60; transition: transform .25s ease; text-align:center; max-width:88%; }
   .toast.show{ transform:translateX(-50%) translateY(0); }
   .toast.err{ background:#E08064; }
-  .view-tag{ font-size:11px; padding:3px 10px; border-radius:999px; border:1px solid var(--line); color:rgba(246,243,233,0.5); }
   .edit-hint{ text-align:center; font-size:12px; color:rgba(246,243,233,0.4); margin-top:4px; }
   .setup-banner{ margin:16px; padding:16px; border:1px dashed var(--brick); border-radius:var(--radius); font-size:13px; line-height:1.6; color:rgba(246,243,233,0.75); }
   .setup-banner code{ background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:5px; font-size:12px; }
 
-  /* ---------- settings ---------- */
-  .settings-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 4px; border-bottom:1px solid var(--line); gap:10px; }
-  .settings-row:last-child{ border-bottom:none; }
-  .sr-name{ font-size:14px; font-weight:600; }
-  .sr-type{ font-weight:400; font-size:12px; color:rgba(246,243,233,0.5); }
-  .sr-actions{ display:flex; gap:6px; flex-shrink:0; }
-  .icon-btn{ border:1px solid var(--line); background:transparent; color:rgba(246,243,233,0.7); font-size:12px;
-    padding:5px 10px; border-radius:8px; cursor:pointer; font-weight:600; white-space:nowrap;}
-  .icon-btn.danger{ color:#E08064; border-color:rgba(224,128,100,0.35); }
-  .add-inline{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-  .add-inline input, .add-inline select{ flex:1; min-width:110px; background:rgba(255,255,255,0.05); border:1px solid var(--line);
-    border-radius:10px; padding:10px 12px; color:var(--chalk); font-size:13.5px; font-family:'Sarabun';}
-  .add-inline .btn{ flex:none; padding:10px 16px; }
-  .tag-list{ display:flex; flex-wrap:wrap; gap:8px; }
-  .tag{ display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,0.06); border:1px solid var(--line);
-    border-radius:999px; padding:6px 6px 6px 12px; font-size:13px;}
-  .tag-x{ border:none; background:rgba(224,128,100,0.18); color:#E08064; width:18px; height:18px; border-radius:50%;
-    font-size:12px; cursor:pointer; line-height:1; flex-shrink:0;}
-  .empty-mini{ font-size:12.5px; color:rgba(246,243,233,0.4); padding:4px; }
+  /* History tab */
+  .info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  .info-item .lbl{ font-size:11px; color:rgba(246,243,233,0.5); margin-bottom:4px; }
+  .info-item .val{ font-family:'Prompt'; font-weight:600; font-size:14.5px; }
+  .story-text{ font-size:13.5px; line-height:1.9; color:rgba(246,243,233,0.85); white-space:pre-wrap; }
+  .icon-edit{ width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:transparent;
+    color:rgba(246,243,233,0.7); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
 
-  /* ---------- uploads ---------- */
-  .photo-upload{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .avatar-preview{ width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--line); flex-shrink:0;}
-  .slip-preview{ width:70px; height:70px; border-radius:10px; object-fit:cover; border:1px solid var(--line); flex-shrink:0;}
-  input[type="file"]{ font-size:12px; color:rgba(246,243,233,0.65); flex:1; min-width:140px;}
-  .remove-link{ font-size:11.5px; color:rgba(224,128,100,0.85); text-decoration:underline; cursor:pointer; margin-top:6px; display:none;}
-  .jersey.has-photo{ background-size:cover; background-position:center; }
+  /* Hall of fame */
+  .trophy-row{ display:flex; gap:12px; padding:13px 4px; border-bottom:1px solid var(--line); }
+  .trophy-row:last-child{ border-bottom:none; }
+  .trophy-icon{ font-size:20px; flex-shrink:0; width:38px; height:38px; border-radius:10px; background:rgba(227,178,60,0.12);
+    display:flex; align-items:center; justify-content:center; }
+  .trophy-info{ flex:1; min-width:0; }
+  .trophy-year{ font-family:'Prompt'; font-weight:700; font-size:12px; color:var(--gold); }
+  .trophy-title{ font-weight:600; font-size:14.5px; margin-top:2px; }
+  .trophy-detail{ font-size:12.5px; color:rgba(246,243,233,0.55); margin-top:3px; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -191,7 +194,7 @@
 <header class="top">
   <div class="brand">
     <div class="crest">บส</div>
-    <div>
+    <div style="min-width:0;">
       <div class="brand-name">บ้านสร้าง FC</div>
       <div class="brand-sub" id="brandSub">ระบบจัดการทีม · ออนไลน์</div>
     </div>
@@ -201,7 +204,7 @@
 
 <div id="setupBanner" class="setup-banner" style="display:none;">
   ยังไม่ได้เชื่อมต่อ Google Sheets — เปิดไฟล์ <code>index.html</code> แล้วแก้ค่า <code>SCRIPT_URL</code>
-  ที่ต้นไฟล์ script ให้เป็นลิงก์ Web App ที่ได้จาก Google Apps Script (ดูขั้นตอนใน README.md)
+  ที่ต้นไฟล์ script ให้เป็นลิงก์ Web App จาก Google Apps Script (ดู README.md)
 </div>
 
 <div class="scoreboard">
@@ -216,7 +219,8 @@
   <button class="tab-btn active" data-tab="dashboard">ภาพรวม</button>
   <button class="tab-btn" data-tab="players">นักเตะ</button>
   <button class="tab-btn" data-tab="finance">การเงิน</button>
-  <button class="tab-btn" data-tab="settings" id="tabSettingsBtn" style="display:none;">ตั้งค่า</button>
+  <button class="tab-btn" data-tab="history">ประวัติทีม</button>
+  <button class="tab-btn" data-tab="trophies">ทำเนียบแชมป์</button>
 </nav>
 
 <main>
@@ -228,10 +232,6 @@
     <div class="card">
       <div class="section-title">รายรับ-รายจ่าย 6 เดือนล่าสุด</div>
       <div class="chart" id="chart"></div>
-    </div>
-    <div class="card" id="groupSummaryCard" style="display:none;">
-      <div class="section-title">สรุปยอดตามกลุ่ม</div>
-      <div id="groupSummaryList"></div>
     </div>
     <div class="card">
       <div class="section-title">รายการล่าสุด <span class="count" id="recentCount"></span></div>
@@ -246,35 +246,42 @@
   </section>
 
   <section class="view" id="view-finance">
-    <div class="section-title">รายรับ-รายจ่าย <span class="count" id="txCount"></span></div>
+    <div class="section-title">
+      รายรับ-รายจ่าย <span class="count" id="txCount"></span>
+      <button class="link-btn" id="manageCatBtn" style="display:none;">จัดการหมวดหมู่</button>
+    </div>
     <div class="filters" id="txFilters">
       <button class="chip active" data-f="all">ทั้งหมด</button>
       <button class="chip" data-f="income">รายรับ</button>
       <button class="chip" data-f="expense">รายจ่าย</button>
     </div>
-    <div class="filters" id="txGroupFilters"></div>
     <div class="card" style="padding:4px 10px;"><div id="txList"></div></div>
   </section>
 
-  <section class="view" id="view-settings">
-    <div class="section-title">กลุ่มรายรับ-รายจ่าย</div>
-    <p class="edit-hint" style="margin:-6px 0 12px;">เช่น แบ่งบัญชีตามรุ่นอายุ U12 / U14 — ใช้เลือกตอนเพิ่มรายการการเงิน</p>
-    <div class="card" id="groupsCard"></div>
-
-    <div class="section-title" style="margin-top:20px;">หมวดหมู่รายรับ-รายจ่าย</div>
-    <div class="filters" id="catTypeTabs">
-      <button class="chip active" data-ct="income">หมวดรายรับ</button>
-      <button class="chip" data-ct="expense">หมวดรายจ่าย</button>
+  <section class="view" id="view-history">
+    <div class="section-title">ประวัติทีม
+      <button class="icon-edit" id="editHistoryBtn" style="display:none;">✎</button>
     </div>
-    <div class="card" id="categoriesCard"></div>
+    <div class="card">
+      <div class="info-grid">
+        <div class="info-item"><div class="lbl">ก่อตั้งเมื่อ</div><div class="val" id="infoFounded">-</div></div>
+        <div class="info-item"><div class="lbl">สนามเหย้า</div><div class="val" id="infoGround">-</div></div>
+        <div class="info-item"><div class="lbl">ผู้ฝึกสอน</div><div class="val" id="infoCoach">-</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:8px;">ปณิธานของทีม</div>
+      <div class="story-text" id="infoMission">-</div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:8px;">เรื่องราวของเรา</div>
+      <div class="story-text" id="infoHistory">-</div>
+    </div>
+  </section>
 
-    <div class="section-title" style="margin-top:20px;">ช่องข้อมูลนักเตะเพิ่มเติม</div>
-    <p class="edit-hint" style="margin:-6px 0 12px;">เช่น ชื่อเล่น, ขนาดเสื้อ, โรงเรียน — จะไปโผล่ในฟอร์มเพิ่ม/แก้ไขนักเตะอัตโนมัติ</p>
-    <div class="card" id="playerFieldsCard"></div>
-
-    <div class="section-title" style="margin-top:20px;">ช่องข้อมูลรายการเพิ่มเติม</div>
-    <p class="edit-hint" style="margin:-6px 0 12px;">เช่น ผู้รับผิดชอบ, เลขที่ใบเสร็จ — จะไปโผล่ในฟอร์มเพิ่ม/แก้ไขรายรับ-รายจ่าย</p>
-    <div class="card" id="txFieldsCard"></div>
+  <section class="view" id="view-trophies">
+    <div class="section-title">ทำเนียบแชมป์ <span class="count" id="trophyCount"></span></div>
+    <div class="card" style="padding:4px 10px;"><div id="trophyList"></div></div>
   </section>
 </main>
 
@@ -301,13 +308,13 @@
   <div class="sheet">
     <h3 id="playerModalTitle">เพิ่มนักเตะ</h3>
     <input type="hidden" id="pId">
-    <div class="field">
-      <label>รูปนักเตะ</label>
-      <div class="photo-upload">
-        <img id="pPhotoPreview" class="avatar-preview" style="display:none;">
-        <input type="file" accept="image/*" id="pPhotoFile">
+    <input type="hidden" id="pPhotoBase64">
+    <div class="photo-picker">
+      <div class="photo-preview" id="pPhotoPreview">📷</div>
+      <div class="photo-actions">
+        <label class="upload-btn">เลือกรูป<input type="file" id="pPhotoFile" accept="image/*"></label>
+        <button class="remove-btn" id="pPhotoRemove">ลบรูป</button>
       </div>
-      <span class="remove-link" id="pPhotoRemove">ลบรูปนี้</span>
     </div>
     <div class="field"><label>ชื่อ-นามสกุล</label><input id="pName" placeholder="เช่น สมชาย ใจดี"></div>
     <div class="field"><label>เบอร์เสื้อ</label><input id="pNumber" type="number" placeholder="เช่น 9"></div>
@@ -328,7 +335,6 @@
         <option value="leave">ลา/ไม่พร้อม</option>
       </select>
     </div>
-    <div id="pCustomFieldsWrap"></div>
     <div class="btn-row">
       <button class="btn ghost" id="playerCancel">ยกเลิก</button>
       <button class="btn danger" id="playerDelete" style="display:none;">ลบ</button>
@@ -349,24 +355,73 @@
         <button type="button" class="expense" id="segExpense">รายจ่าย</button>
       </div>
     </div>
-    <div class="field"><label>กลุ่ม</label><select id="tGroup"></select></div>
     <div class="field"><label>หมวดหมู่</label><select id="tCategory"></select></div>
     <div class="field"><label>จำนวนเงิน (บาท)</label><input id="tAmount" type="number" placeholder="0"></div>
     <div class="field"><label>วันที่</label><input id="tDate" type="date"></div>
     <div class="field"><label>หมายเหตุ</label><input id="tNote" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></div>
-    <div class="field">
-      <label>แนบสลิป/หลักฐาน (ถ้ามี)</label>
-      <div class="photo-upload">
-        <img id="tSlipPreview" class="slip-preview" style="display:none;">
-        <input type="file" accept="image/*" id="tSlipFile">
-      </div>
-      <span class="remove-link" id="tSlipRemove">ลบรูปนี้</span>
-    </div>
-    <div id="tCustomFieldsWrap"></div>
     <div class="btn-row">
       <button class="btn ghost" id="txCancel">ยกเลิก</button>
       <button class="btn danger" id="txDelete" style="display:none;">ลบ</button>
       <button class="btn primary" id="txSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MANAGE MODAL -->
+<div class="overlay" id="catOverlay">
+  <div class="sheet">
+    <h3>จัดการหมวดหมู่</h3>
+    <div class="field">
+      <label>รายรับ</label>
+      <div class="filters" id="catIncomeList"></div>
+    </div>
+    <div class="field">
+      <label>รายจ่าย</label>
+      <div class="filters" id="catExpenseList"></div>
+    </div>
+    <div class="field">
+      <label>เพิ่มหมวดหมู่ใหม่</label>
+      <div class="seg" style="margin-bottom:8px;">
+        <button type="button" class="income" id="newCatIncome">รายรับ</button>
+        <button type="button" class="expense" id="newCatExpense">รายจ่าย</button>
+      </div>
+      <input id="newCatName" placeholder="เช่น ค่าขายสินค้า">
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="catClose">ปิด</button>
+      <button class="btn primary" id="catAdd">เพิ่มหมวดหมู่</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY EDIT MODAL -->
+<div class="overlay" id="historyOverlay">
+  <div class="sheet">
+    <h3>แก้ไขประวัติทีม</h3>
+    <div class="field"><label>ก่อตั้งเมื่อ</label><input id="hFounded" placeholder="เช่น พ.ศ. 2560"></div>
+    <div class="field"><label>สนามเหย้า</label><input id="hGround" placeholder="เช่น สนามกีฬาบ้านสร้าง"></div>
+    <div class="field"><label>ผู้ฝึกสอน</label><input id="hCoach" placeholder="ชื่อผู้ฝึกสอน"></div>
+    <div class="field"><label>ปณิธานของทีม</label><textarea id="hMission" placeholder="สิ่งที่ทีมยึดถือ / เป้าหมาย"></textarea></div>
+    <div class="field"><label>เรื่องราวของทีม</label><textarea id="hHistory" placeholder="ความเป็นมาของทีม เรื่องราวที่อยากบอกเล่า" style="min-height:140px;"></textarea></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="historyCancel">ยกเลิก</button>
+      <button class="btn primary" id="historySave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- TROPHY MODAL -->
+<div class="overlay" id="trophyOverlay">
+  <div class="sheet">
+    <h3 id="trophyModalTitle">เพิ่มรายการในทำเนียบแชมป์</h3>
+    <input type="hidden" id="trId">
+    <div class="field"><label>ปี</label><input id="trYear" placeholder="เช่น 2568"></div>
+    <div class="field"><label>ชื่อรางวัล / ผลงาน</label><input id="trTitle" placeholder="เช่น แชมป์ลีกดิวิชั่น 2"></div>
+    <div class="field"><label>รายละเอียดเพิ่มเติม</label><textarea id="trDetail" placeholder="เช่น ชนะเลิศฟุตบอลประเพณีตำบล ประจำปี..."></textarea></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="trophyCancel">ยกเลิก</button>
+      <button class="btn danger" id="trophyDelete" style="display:none;">ลบ</button>
+      <button class="btn primary" id="trophySave">บันทึก</button>
     </div>
   </div>
 </div>
@@ -376,32 +431,13 @@
 <script>
 (function(){
   // ============================================================
-  // ตั้งค่า: วางลิงก์ Web App ของ Google Apps Script ตรงนี้
-  // (Deploy > New deployment > Web app > Who has access: Anyone)
+  // ตั้งค่า: ลิงก์ Web App ของ Google Apps Script
   // ============================================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFk9S8KXdGckGbri42TbwioFZQoOb7GMTwLNJg4JHlBUwEEF9oJzlHmulDgC8AHjExtg/exec";
 
-  const DEFAULT_SETTINGS = {
-    groups: [{id:'g_u12',name:'U12'},{id:'g_u14',name:'U14'}],
-    categories: {
-      income: ['ค่าสมาชิก','สปอนเซอร์','เงินรางวัล','อื่นๆ'],
-      expense: ['ค่าสนาม','ค่าอุปกรณ์','ค่าเดินทาง','ค่าเสื้อ/ชุดแข่ง','ค่าจัดการอื่นๆ']
-    },
-    customFields: { players: [], transactions: [] }
-  };
-
-  let players = [];
-  let txs = [];
-  let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
-  let txFilter = 'all';
-  let txGroupFilter = 'all';
-  let txType = 'income';
-  let catType = 'income';
+  let players = [], txs = [], categories = [], teamInfo = {}, achievements = [];
+  let txFilter = 'all', txType = 'income', newCatType = 'income';
   let isAdmin = false;
-
-  // photo/slip upload state
-  let pPhotoBase64 = null, pPhotoCleared = false;
-  let tSlipBase64 = null, tSlipCleared = false;
 
   const $ = id => document.getElementById(id);
   const fmt = n => '฿' + Number(n||0).toLocaleString('th-TH', {maximumFractionDigits:0});
@@ -410,84 +446,40 @@
     t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
   };
   const configured = () => SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1;
-  const escapeHTML = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const fieldTypeLabel = t => ({text:'ข้อความ',number:'ตัวเลข',date:'วันที่'}[t] || t);
+  const photoUrl = (id, size) => id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${size||160}` : '';
 
   // ---------- API ----------
-  async function apiGet(){
-    const res = await fetch(SCRIPT_URL + '?action=getData');
-    return res.json();
-  }
-  // ส่งแบบ text/plain เพื่อเลี่ยงปัญหา CORS preflight กับ Apps Script
+  async function apiGet(){ const res = await fetch(SCRIPT_URL + '?action=getData'); return res.json(); }
   async function apiPost(payload){
     const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     return res.json();
   }
 
   async function loadAll(){
-    if(!configured()){
-      $('setupBanner').style.display = 'block';
-      return;
-    }
+    if(!configured()){ $('setupBanner').style.display = 'block'; return; }
     try{
       const data = await apiGet();
       players = (data.players || []).map(normalizePlayer);
       txs = (data.transactions || []).map(normalizeTx);
-      if(data.settings){
-        settings = data.settings;
-        if(!settings.customFields) settings.customFields = { players: [], transactions: [] };
-        if(!settings.customFields.players) settings.customFields.players = [];
-        if(!settings.customFields.transactions) settings.customFields.transactions = [];
-        if(!settings.groups) settings.groups = [];
-        if(!settings.categories) settings.categories = DEFAULT_SETTINGS.categories;
-      }
+      categories = data.categories || [];
+      teamInfo = data.teamInfo || {};
+      achievements = (data.achievements || []).map(normalizeAchievement);
       render();
-    }catch(e){
-      toast('โหลดข้อมูลไม่สำเร็จ ตรวจสอบการเชื่อมต่อ', true);
-    }
+    }catch(e){ toast('โหลดข้อมูลไม่สำเร็จ ตรวจสอบการเชื่อมต่อ', true); }
   }
   function normalizePlayer(p){
-    const out = Object.assign({}, p);
-    out.id = String(p.id); out.name = p.name||''; out.number = p.number===''? null : p.number;
-    out.position = p.position||''; out.age = p.age===''? null : p.age; out.phone = p.phone||'';
-    out.status = p.status||'active'; out.photoUrl = p.photoUrl||'';
-    return out;
+    return { id: String(p.id), name: p.name||'', number: p.number===''? null : p.number,
+      position: p.position||'', age: p.age===''? null : p.age, phone: p.phone||'', status: p.status||'active',
+      photoId: p.photoId||'' };
   }
   function normalizeTx(t){
-    const out = Object.assign({}, t);
-    out.id = String(t.id); out.type = t.type; out.category = t.category||'';
-    out.amount = Number(t.amount)||0;
-    out.date = t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10);
-    out.note = t.note||''; out.groupId = t.groupId||''; out.slipUrl = t.slipUrl||'';
-    return out;
+    return { id: String(t.id), type: t.type, category: t.category||'',
+      amount: Number(t.amount)||0, date: t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10), note: t.note||'' };
+  }
+  function normalizeAchievement(a){
+    return { id: String(a.id), year: String(a.year||''), title: a.title||'', detail: a.detail||'' };
   }
   function isoDate(d){ return d.toISOString().slice(0,10); }
-  function groupName(id){ const g = settings.groups.find(x=>x.id===id); return g ? g.name : ''; }
-
-  // ---------- image helpers (ย่อขนาดก่อนอัปโหลดให้เร็วและประหยัดพื้นที่) ----------
-  function fileToResizedDataURL(file, maxDim, quality){
-    return new Promise((resolve, reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        const img = new Image();
-        img.onload = ()=>{
-          let { width, height } = img;
-          if(width > maxDim || height > maxDim){
-            if(width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
-            else { width = Math.round(width * maxDim / height); height = maxDim; }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = width; canvas.height = height;
-          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = reject;
-        img.src = reader.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 
   // ---------- auth ----------
   function setAdminUI(){
@@ -495,21 +487,15 @@
     $('authBtn').classList.toggle('on', isAdmin);
     $('brandSub').textContent = isAdmin ? 'ระบบจัดการทีม · โหมดแอดมิน' : 'ระบบจัดการทีม · ดูข้อมูลอย่างเดียว';
     $('playerHint').style.display = isAdmin ? 'block' : 'none';
-    $('tabSettingsBtn').style.display = isAdmin ? 'block' : 'none';
-    if(!isAdmin && activeTab()==='settings'){
-      document.querySelector('.tab-btn[data-tab="dashboard"]').click();
-    }
-    fabMode();
-    render();
+    $('manageCatBtn').style.display = isAdmin ? 'inline-block' : 'none';
+    $('editHistoryBtn').style.display = isAdmin ? 'flex' : 'none';
+    fabMode(); render();
   }
   $('authBtn').addEventListener('click', ()=>{
     if(isAdmin){
       isAdmin = false; sessionStorage.removeItem('bsfc_admin_pw');
       toast('ออกจากระบบแอดมินแล้ว'); setAdminUI();
-    } else {
-      $('loginPw').value = '';
-      $('loginOverlay').classList.add('active');
-    }
+    } else { $('loginPw').value=''; $('loginOverlay').classList.add('active'); }
   });
   $('loginCancel').addEventListener('click', ()=> $('loginOverlay').classList.remove('active'));
   $('loginSubmit').addEventListener('click', async ()=>{
@@ -521,36 +507,37 @@
       if(res.ok){
         isAdmin = true; sessionStorage.setItem('bsfc_admin_pw', pw);
         $('loginOverlay').classList.remove('active');
-        toast('เข้าสู่ระบบแอดมินสำเร็จ');
-        setAdminUI();
-      } else {
-        toast('รหัสผ่านไม่ถูกต้อง', true);
-      }
+        toast('เข้าสู่ระบบแอดมินสำเร็จ'); setAdminUI();
+      } else { toast('รหัสผ่านไม่ถูกต้อง', true); }
     }catch(e){ toast('เชื่อมต่อไม่สำเร็จ', true); }
   });
   function adminPw(){ return sessionStorage.getItem('bsfc_admin_pw') || ''; }
+  function handleAuthError(res){
+    if(res && res.error === 'unauthorized'){ toast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', true); return true; }
+    if(res && res.error){ toast(res.error, true); return true; }
+    return false;
+  }
 
   // ---------- tabs ----------
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      if(btn.dataset.tab==='settings' && !isAdmin) return;
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
       btn.classList.add('active');
       $('view-' + btn.dataset.tab).classList.add('active');
-      if(btn.dataset.tab==='settings') renderAllSettings();
       fabMode();
     });
   });
   function activeTab(){ return document.querySelector('.tab-btn.active').dataset.tab; }
   function fabMode(){
-    $('fabBtn').style.display = (isAdmin && (activeTab()==='players'||activeTab()==='finance')) ? 'flex' : 'none';
+    const t = activeTab();
+    $('fabBtn').style.display = (isAdmin && (t==='players' || t==='finance' || t==='trophies')) ? 'flex' : 'none';
   }
 
   // ---------- render ----------
   function render(){
-    renderScoreboard(); renderDashboard(); renderPlayers(); renderTxGroupFilters(); renderTx(); fabMode();
-    if(activeTab()==='settings') renderAllSettings();
+    renderScoreboard(); renderDashboard(); renderPlayers(); renderTx();
+    renderHistory(); renderTrophies(); fabMode();
   }
   function monthKey(d){ return d.slice(0,7); }
   function thisMonthKey(){ return new Date().toISOString().slice(0,7); }
@@ -592,26 +579,10 @@
       </div><div class="m-lbl">${label}</div></div>`;
     }).join('');
 
-    renderGroupSummary();
-
     const recent = [...txs].sort((a,b)=> b.date.localeCompare(a.date)).slice(0,5);
     $('recentCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
-    $('recentTx').innerHTML = recent.length ? recent.map(txRowHTML).join('') :
-      `<div class="empty">ยังไม่มีรายการรายรับ-รายจ่าย</div>`;
+    $('recentTx').innerHTML = recent.length ? recent.map(txRowHTML).join('') : `<div class="empty">ยังไม่มีรายการรายรับ-รายจ่าย</div>`;
     attachTxHandlers($('recentTx'));
-  }
-
-  function renderGroupSummary(){
-    const hasAny = txs.some(t=>t.groupId);
-    if(!settings.groups.length || !hasAny){ $('groupSummaryCard').style.display='none'; return; }
-    $('groupSummaryCard').style.display='block';
-    $('groupSummaryList').innerHTML = settings.groups.map(g=>{
-      const bal = txs.filter(t=>t.groupId===g.id).reduce((s,t)=> s + (t.type==='income'?Number(t.amount):-Number(t.amount)), 0);
-      return `<div class="tx-row">
-        <div class="tx-info"><div class="tx-cat">${escapeHTML(g.name)}</div></div>
-        <div class="tx-amt ${bal>=0?'income':'expense'}">${bal>=0?'+':''}${fmt(bal)}</div>
-      </div>`;
-    }).join('');
   }
 
   function renderPlayers(){
@@ -620,13 +591,12 @@
     $('playerList').innerHTML = sorted.length ? sorted.map(p=>{
       const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
       const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
-      const cfText = settings.customFields.players.map(f=> p[f.key] ? `${f.label}: ${p[f.key]}` : null).filter(Boolean).join(' · ');
-      const jerseyStyle = p.photoUrl ? `style="background-image:url('${p.photoUrl}')"` : '';
+      const jerseyInner = p.photoId ? `<img src="${photoUrl(p.photoId,120)}" alt="${escapeHTML(p.name)}">` : (p.number ?? '-');
       return `<div class="player-row" data-id="${p.id}" style="cursor:${isAdmin?'pointer':'default'}">
-        <div class="jersey ${p.photoUrl?'has-photo':''}" ${jerseyStyle}>${p.photoUrl?'':(p.number ?? '-')}</div>
+        <div class="jersey">${jerseyInner}</div>
         <div class="p-info">
           <div class="p-name">${escapeHTML(p.name)}</div>
-          <div class="p-meta">${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี${cfText? ' · '+escapeHTML(cfText):''}</div>
+          <div class="p-meta">#${p.number ?? '-'} · ${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี</div>
         </div>
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>`;
@@ -640,11 +610,10 @@
 
   function txRowHTML(t){
     const cat = t.category || (t.type==='income'?'รายรับ':'รายจ่าย');
-    const gname = t.groupId ? groupName(t.groupId) : '';
     return `<div class="tx-row" data-id="${t.id}" style="cursor:${isAdmin?'pointer':'default'}">
       <div class="tx-dot ${t.type}"></div>
       <div class="tx-info">
-        <div class="tx-cat">${escapeHTML(cat)}${gname?`<span class="mini-tag">${escapeHTML(gname)}</span>`:''}${t.slipUrl?'<span class="clip">📎</span>':''}</div>
+        <div class="tx-cat">${escapeHTML(cat)}</div>
         <div class="tx-meta">${t.date}${t.note? ' · '+escapeHTML(t.note):''}</div>
       </div>
       <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
@@ -656,22 +625,8 @@
       row.addEventListener('click', ()=> openTxModal(row.dataset.id));
     });
   }
-
-  function renderTxGroupFilters(){
-    const el = $('txGroupFilters');
-    if(!settings.groups.length){ el.innerHTML=''; txGroupFilter='all'; return; }
-    el.innerHTML = `<button class="chip ${txGroupFilter==='all'?'active':''}" data-g="all">ทุกกลุ่ม</button>` +
-      settings.groups.map(g=>`<button class="chip ${txGroupFilter===g.id?'active':''}" data-g="${g.id}">${escapeHTML(g.name)}</button>`).join('');
-    el.querySelectorAll('.chip').forEach(chip=>{
-      chip.addEventListener('click', ()=>{
-        el.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-        chip.classList.add('active'); txGroupFilter = chip.dataset.g; renderTx();
-      });
-    });
-  }
-
   function renderTx(){
-    const filtered = txs.filter(t => (txFilter==='all'||t.type===txFilter) && (txGroupFilter==='all'||t.groupId===txGroupFilter));
+    const filtered = txFilter==='all' ? txs : txs.filter(t=>t.type===txFilter);
     const sorted = [...filtered].sort((a,b)=> b.date.localeCompare(a.date));
     $('txCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
     $('txList').innerHTML = sorted.length ? sorted.map(txRowHTML).join('') : `<div class="empty">ไม่พบรายการ</div>`;
@@ -684,140 +639,82 @@
     });
   });
 
-  // ---------- settings screens (admin only) ----------
-  async function saveSettings(){
+  function renderHistory(){
+    $('infoFounded').textContent = teamInfo.founded || '-';
+    $('infoGround').textContent = teamInfo.homeGround || '-';
+    $('infoCoach').textContent = teamInfo.coach || '-';
+    $('infoMission').textContent = teamInfo.mission || (isAdmin ? 'ยังไม่ได้กรอกข้อมูล แตะปุ่มแก้ไขเพื่อเพิ่ม' : 'ยังไม่มีข้อมูล');
+    $('infoHistory').textContent = teamInfo.history || (isAdmin ? 'ยังไม่ได้กรอกข้อมูล แตะปุ่มแก้ไขเพื่อเพิ่ม' : 'ยังไม่มีข้อมูล');
+  }
+
+  function renderTrophies(){
+    $('trophyCount').textContent = achievements.length ? `(${achievements.length} รายการ)` : '';
+    const sorted = [...achievements].sort((a,b)=> b.year.localeCompare(a.year));
+    $('trophyList').innerHTML = sorted.length ? sorted.map(a=>`
+      <div class="trophy-row" data-id="${a.id}" style="cursor:${isAdmin?'pointer':'default'}">
+        <div class="trophy-icon">🏆</div>
+        <div class="trophy-info">
+          <div class="trophy-year">${escapeHTML(a.year)}</div>
+          <div class="trophy-title">${escapeHTML(a.title)}</div>
+          ${a.detail ? `<div class="trophy-detail">${escapeHTML(a.detail)}</div>` : ''}
+        </div>
+      </div>`).join('') : `<div class="empty">ยังไม่มีรายการในทำเนียบแชมป์</div>`;
+    if(isAdmin){
+      document.querySelectorAll('#trophyList .trophy-row').forEach(row=>{
+        row.addEventListener('click', ()=> openTrophyModal(row.dataset.id));
+      });
+    }
+  }
+
+  function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---------- photo handling ----------
+  function resizeImageToBase64(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 480;
+          let w = img.width, h = img.height;
+          if(w > h && w > maxDim){ h = Math.round(h*maxDim/w); w = maxDim; }
+          else if(h > maxDim){ w = Math.round(w*maxDim/h); h = maxDim; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  $('pPhotoFile').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
     try{
-      const res = await apiPost({ action:'updateSettings', password: adminPw(), data: settings });
-      if(res.error){ toast(res.error==='unauthorized' ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' : res.error, true); }
-      else { toast('บันทึกการตั้งค่าแล้ว'); await loadAll(); if(activeTab()==='settings') renderAllSettings(); }
-    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
-  }
-
-  function renderAllSettings(){
-    renderGroupsSettings();
-    renderCategoriesSettings();
-    renderCustomFieldsSettings('players', 'playerFieldsCard');
-    renderCustomFieldsSettings('transactions', 'txFieldsCard');
-  }
-
-  function renderGroupsSettings(){
-    const el = $('groupsCard');
-    const rows = settings.groups.length ? settings.groups.map(g=>`
-      <div class="settings-row" data-id="${g.id}">
-        <span class="sr-name">${escapeHTML(g.name)}</span>
-        <span class="sr-actions">
-          <button class="icon-btn rename-group" data-id="${g.id}">แก้ไขชื่อ</button>
-          <button class="icon-btn danger delete-group" data-id="${g.id}">ลบ</button>
-        </span>
-      </div>`).join('') : `<div class="empty-mini">ยังไม่มีกลุ่ม</div>`;
-    el.innerHTML = rows + `
-      <div class="add-inline">
-        <input id="newGroupName" placeholder="ชื่อกลุ่มใหม่ เช่น U16">
-        <button class="btn primary" id="addGroupBtn">เพิ่มกลุ่ม</button>
-      </div>`;
-    el.querySelectorAll('.rename-group').forEach(b=> b.addEventListener('click', ()=> renameGroup(b.dataset.id)));
-    el.querySelectorAll('.delete-group').forEach(b=> b.addEventListener('click', ()=> deleteGroup(b.dataset.id)));
-    $('addGroupBtn').addEventListener('click', addGroup);
-  }
-  function addGroup(){
-    const input = $('newGroupName'); const name = input.value.trim();
-    if(!name) return;
-    settings.groups.push({ id: 'g_' + Date.now().toString(36), name });
-    input.value=''; saveSettings();
-  }
-  function renameGroup(id){
-    const g = settings.groups.find(x=>x.id===id); if(!g) return;
-    const name = prompt('แก้ไขชื่อกลุ่ม', g.name);
-    if(name===null) return;
-    const trimmed = name.trim(); if(!trimmed) return;
-    g.name = trimmed; saveSettings();
-  }
-  function deleteGroup(id){
-    if(!confirm('ลบกลุ่มนี้ใช่หรือไม่? รายการที่เคยอยู่ในกลุ่มนี้จะกลายเป็น "ไม่ระบุกลุ่ม"')) return;
-    settings.groups = settings.groups.filter(x=>x.id!==id);
-    saveSettings();
-  }
-
-  function renderCategoriesSettings(){
-    const list = settings.categories[catType] || [];
-    const el = $('categoriesCard');
-    el.innerHTML = (list.length ? `<div class="tag-list">` + list.map((c,i)=>
-        `<span class="tag">${escapeHTML(c)}<button class="tag-x" data-i="${i}">×</button></span>`).join('') + `</div>`
-      : `<div class="empty-mini">ยังไม่มีหมวดหมู่</div>`) + `
-      <div class="add-inline">
-        <input id="newCatName" placeholder="เพิ่มหมวดหมู่ใหม่">
-        <button class="btn primary" id="addCatBtn">เพิ่ม</button>
-      </div>`;
-    el.querySelectorAll('.tag-x').forEach(b=> b.addEventListener('click', ()=>{
-      settings.categories[catType].splice(parseInt(b.dataset.i,10),1);
-      saveSettings();
-    }));
-    $('addCatBtn').addEventListener('click', ()=>{
-      const input = $('newCatName'); const v = input.value.trim();
-      if(!v) return;
-      if(!settings.categories[catType].includes(v)) settings.categories[catType].push(v);
-      input.value=''; saveSettings();
-    });
-  }
-  document.querySelectorAll('#catTypeTabs .chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      document.querySelectorAll('#catTypeTabs .chip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active'); catType = chip.dataset.ct; renderCategoriesSettings();
-    });
+      const base64 = await resizeImageToBase64(file);
+      $('pPhotoBase64').value = base64;
+      $('pPhotoPreview').innerHTML = `<img src="${base64}">`;
+    }catch(err){ toast('ไม่สามารถอ่านรูปภาพนี้ได้', true); }
+  });
+  $('pPhotoRemove').addEventListener('click', ()=>{
+    $('pPhotoBase64').value = '__REMOVE__';
+    $('pPhotoFile').value = '';
+    $('pPhotoPreview').innerHTML = '📷';
   });
 
-  function renderCustomFieldsSettings(entity, elId){
-    const list = settings.customFields[entity] || [];
-    const el = $(elId);
-    const rows = list.length ? list.map((f,i)=>`
-      <div class="settings-row">
-        <span class="sr-name">${escapeHTML(f.label)} <span class="sr-type">(${fieldTypeLabel(f.type)})</span></span>
-        <span class="sr-actions"><button class="icon-btn danger del-cf" data-i="${i}">ลบ</button></span>
-      </div>`).join('') : `<div class="empty-mini">ยังไม่มีช่องข้อมูลเพิ่มเติม</div>`;
-    el.innerHTML = rows + `
-      <div class="add-inline">
-        <input id="newLabel_${entity}" placeholder="ชื่อช่องข้อมูล">
-        <select id="newType_${entity}">
-          <option value="text">ข้อความ</option>
-          <option value="number">ตัวเลข</option>
-          <option value="date">วันที่</option>
-        </select>
-        <button class="btn primary" id="addBtn_${entity}">เพิ่ม</button>
-      </div>`;
-    el.querySelectorAll('.del-cf').forEach(b=> b.addEventListener('click', ()=>{
-      settings.customFields[entity].splice(parseInt(b.dataset.i,10),1);
-      saveSettings();
-    }));
-    $(`addBtn_${entity}`).addEventListener('click', ()=>{
-      const labelInput = $(`newLabel_${entity}`); const typeInput = $(`newType_${entity}`);
-      const label = labelInput.value.trim(); const type = typeInput.value;
-      if(!label) return;
-      const key = 'cf_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-      settings.customFields[entity].push({ key, label, type });
-      labelInput.value=''; saveSettings();
-    });
-  }
-
   // ---------- player modal ----------
-  function fillGroupOptions(){
-    $('tGroup').innerHTML = `<option value="">ไม่ระบุกลุ่ม</option>` +
-      settings.groups.map(g=>`<option value="${g.id}">${escapeHTML(g.name)}</option>`).join('');
-  }
-
-  function renderPlayerCustomFields(p){
-    $('pCustomFieldsWrap').innerHTML = settings.customFields.players.map(f=>{
-      const val = p ? (p[f.key] ?? '') : '';
-      const inputType = f.type==='number' ? 'number' : f.type==='date' ? 'date' : 'text';
-      return `<div class="field"><label>${escapeHTML(f.label)}</label>
-        <input data-cfkey="${f.key}" type="${inputType}" class="p-cf-input" value="${escapeHTML(String(val))}"></div>`;
-    }).join('');
-  }
-
   function openPlayerModal(id){
     if(!isAdmin) return;
     const p = players.find(x=>x.id===id);
     $('playerModalTitle').textContent = p ? 'แก้ไขนักเตะ' : 'เพิ่มนักเตะ';
     $('pId').value = p ? p.id : '';
+    $('pPhotoBase64').value = '';
+    $('pPhotoFile').value = '';
+    $('pPhotoPreview').innerHTML = (p && p.photoId) ? `<img src="${photoUrl(p.photoId,200)}">` : '📷';
     $('pName').value = p ? p.name : '';
     $('pNumber').value = p ? p.number : '';
     $('pPosition').value = p ? p.position : 'กองกลาง';
@@ -825,30 +722,14 @@
     $('pPhone').value = p ? p.phone : '';
     $('pStatus').value = p ? p.status : 'active';
     $('playerDelete').style.display = p ? 'block' : 'none';
-    pPhotoBase64 = null; pPhotoCleared = false; $('pPhotoFile').value = '';
-    if(p && p.photoUrl){ $('pPhotoPreview').src = p.photoUrl; $('pPhotoPreview').style.display='block'; $('pPhotoRemove').style.display='inline-block'; }
-    else { $('pPhotoPreview').style.display='none'; $('pPhotoRemove').style.display='none'; }
-    renderPlayerCustomFields(p);
     $('playerOverlay').classList.add('active');
   }
-  $('pPhotoFile').addEventListener('change', async e=>{
-    const file = e.target.files[0]; if(!file) return;
-    try{
-      const dataUrl = await fileToResizedDataURL(file, 800, 0.82);
-      pPhotoBase64 = dataUrl; pPhotoCleared = false;
-      $('pPhotoPreview').src = dataUrl; $('pPhotoPreview').style.display='block';
-      $('pPhotoRemove').style.display='inline-block';
-    }catch(err){ toast('อ่านไฟล์รูปไม่สำเร็จ', true); }
-  });
-  $('pPhotoRemove').addEventListener('click', ()=>{
-    pPhotoBase64 = null; pPhotoCleared = true; $('pPhotoFile').value='';
-    $('pPhotoPreview').style.display='none'; $('pPhotoRemove').style.display='none';
-  });
-
   $('fabBtn').addEventListener('click', ()=>{
     if(!isAdmin) return;
-    if(activeTab()==='players') openPlayerModal(null);
-    else if(activeTab()==='finance') openTxModal(null);
+    const t = activeTab();
+    if(t==='players') openPlayerModal(null);
+    else if(t==='finance') openTxModal(null);
+    else if(t==='trophies') openTrophyModal(null);
   });
   $('playerCancel').addEventListener('click', ()=> $('playerOverlay').classList.remove('active'));
   $('playerOverlay').addEventListener('click', e=>{ if(e.target.id==='playerOverlay') $('playerOverlay').classList.remove('active'); });
@@ -857,6 +738,7 @@
     const name = $('pName').value.trim();
     if(!name){ toast('กรุณากรอกชื่อนักเตะ', true); return; }
     const id = $('pId').value;
+    const photoVal = $('pPhotoBase64').value;
     const data = {
       id: id || undefined, name,
       number: $('pNumber').value ? parseInt($('pNumber').value,10) : '',
@@ -865,14 +747,12 @@
       phone: $('pPhone').value.trim(),
       status: $('pStatus').value
     };
-    document.querySelectorAll('.p-cf-input').forEach(inp=> data[inp.dataset.cfkey] = inp.value);
-    if(pPhotoCleared) data.photoUrl = '';
-    else if(pPhotoBase64) data.photoBase64 = pPhotoBase64;
+    if(photoVal === '__REMOVE__') data.photoId = '';
+    else if(photoVal) data.photoBase64 = photoVal;
     $('playerSave').disabled = true;
     try{
       const res = await apiPost({ action: id ? 'updatePlayer' : 'addPlayer', password: adminPw(), data });
-      if(res.error){ toast(res.error==='unauthorized' ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' : res.error, true); }
-      else { toast('บันทึกข้อมูลนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
+      if(!handleAuthError(res)){ toast('บันทึกข้อมูลนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('playerSave').disabled = false;
   });
@@ -881,15 +761,15 @@
     if(!confirm('ลบนักเตะคนนี้ใช่หรือไม่?')) return;
     try{
       const res = await apiPost({ action:'deletePlayer', password: adminPw(), data:{ id } });
-      if(res.error){ toast(res.error, true); }
-      else { toast('ลบนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
+      if(!handleAuthError(res)){ toast('ลบนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
 
-  // ---------- tx modal ----------
+  // ---------- categories ----------
+  function categoriesByType(type){ return categories.filter(c=>c.type===type); }
   function fillCategoryOptions(){
-    const list = settings.categories[txType] || [];
-    $('tCategory').innerHTML = list.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+    $('tCategory').innerHTML = categoriesByType(txType).map(c=>`<option value="${escapeHTML(c.name)}">${escapeHTML(c.name)}</option>`).join('')
+      || `<option value="อื่นๆ">อื่นๆ</option>`;
   }
   function setTxType(type){
     txType = type;
@@ -900,47 +780,56 @@
   $('segIncome').addEventListener('click', ()=> setTxType('income'));
   $('segExpense').addEventListener('click', ()=> setTxType('expense'));
 
-  function renderTxCustomFields(t){
-    $('tCustomFieldsWrap').innerHTML = settings.customFields.transactions.map(f=>{
-      const val = t ? (t[f.key] ?? '') : '';
-      const inputType = f.type==='number' ? 'number' : f.type==='date' ? 'date' : 'text';
-      return `<div class="field"><label>${escapeHTML(f.label)}</label>
-        <input data-cfkey="${f.key}" type="${inputType}" class="t-cf-input" value="${escapeHTML(String(val))}"></div>`;
-    }).join('');
-  }
+  $('manageCatBtn').addEventListener('click', ()=>{ renderCategoryManager(); $('catOverlay').classList.add('active'); });
+  $('catClose').addEventListener('click', ()=> $('catOverlay').classList.remove('active'));
+  $('catOverlay').addEventListener('click', e=>{ if(e.target.id==='catOverlay') $('catOverlay').classList.remove('active'); });
+  $('newCatIncome').addEventListener('click', ()=>{ newCatType='income'; $('newCatIncome').classList.add('on'); $('newCatExpense').classList.remove('on'); });
+  $('newCatExpense').addEventListener('click', ()=>{ newCatType='expense'; $('newCatExpense').classList.add('on'); $('newCatIncome').classList.remove('on'); });
 
+  function renderCategoryManager(){
+    $('newCatIncome').classList.toggle('on', newCatType==='income');
+    $('newCatExpense').classList.toggle('on', newCatType==='expense');
+    const renderList = (type, containerId) => {
+      const list = categoriesByType(type);
+      $(containerId).innerHTML = list.length ? list.map(c=>
+        `<span class="chip cat-chip" data-id="${c.id}">${escapeHTML(c.name)} <span class="x">✕</span></span>`
+      ).join('') : `<span style="font-size:12px;color:rgba(246,243,233,0.4);">ยังไม่มีหมวดหมู่</span>`;
+      document.querySelectorAll(`#${containerId} .cat-chip`).forEach(chip=>{
+        chip.addEventListener('click', async ()=>{
+          if(!confirm('ลบหมวดหมู่นี้ใช่หรือไม่?')) return;
+          try{
+            const res = await apiPost({ action:'deleteCategory', password: adminPw(), data:{ id: chip.dataset.id } });
+            if(!handleAuthError(res)){ toast('ลบหมวดหมู่แล้ว'); await loadAll(); renderCategoryManager(); }
+          }catch(e){ toast('ลบไม่สำเร็จ', true); }
+        });
+      });
+    };
+    renderList('income', 'catIncomeList');
+    renderList('expense', 'catExpenseList');
+  }
+  $('catAdd').addEventListener('click', async ()=>{
+    const name = $('newCatName').value.trim();
+    if(!name){ toast('กรุณากรอกชื่อหมวดหมู่', true); return; }
+    try{
+      const res = await apiPost({ action:'addCategory', password: adminPw(), data:{ type:newCatType, name } });
+      if(!handleAuthError(res)){ toast('เพิ่มหมวดหมู่แล้ว'); $('newCatName').value=''; await loadAll(); renderCategoryManager(); fillCategoryOptions(); }
+    }catch(e){ toast('เพิ่มไม่สำเร็จ', true); }
+  });
+
+  // ---------- tx modal ----------
   function openTxModal(id){
     if(!isAdmin) return;
     const t = txs.find(x=>x.id===id);
     $('txModalTitle').textContent = t ? 'แก้ไขรายการ' : 'เพิ่มรายการ';
     $('tId').value = t ? t.id : '';
-    fillGroupOptions();
-    $('tGroup').value = t ? (t.groupId||'') : (txGroupFilter!=='all' ? txGroupFilter : '');
     setTxType(t ? t.type : 'income');
-    $('tCategory').value = t ? t.category : ((settings.categories[txType]||[])[0]||'');
+    $('tCategory').value = t ? t.category : (categoriesByType(txType)[0]?.name || 'อื่นๆ');
     $('tAmount').value = t ? t.amount : '';
     $('tDate').value = t ? t.date : new Date().toISOString().slice(0,10);
     $('tNote').value = t ? (t.note||'') : '';
     $('txDelete').style.display = t ? 'block' : 'none';
-    tSlipBase64 = null; tSlipCleared = false; $('tSlipFile').value = '';
-    if(t && t.slipUrl){ $('tSlipPreview').src = t.slipUrl; $('tSlipPreview').style.display='block'; $('tSlipRemove').style.display='inline-block'; }
-    else { $('tSlipPreview').style.display='none'; $('tSlipRemove').style.display='none'; }
-    renderTxCustomFields(t);
     $('txOverlay').classList.add('active');
   }
-  $('tSlipFile').addEventListener('change', async e=>{
-    const file = e.target.files[0]; if(!file) return;
-    try{
-      const dataUrl = await fileToResizedDataURL(file, 1000, 0.8);
-      tSlipBase64 = dataUrl; tSlipCleared = false;
-      $('tSlipPreview').src = dataUrl; $('tSlipPreview').style.display='block';
-      $('tSlipRemove').style.display='inline-block';
-    }catch(err){ toast('อ่านไฟล์รูปไม่สำเร็จ', true); }
-  });
-  $('tSlipRemove').addEventListener('click', ()=>{
-    tSlipBase64 = null; tSlipCleared = true; $('tSlipFile').value='';
-    $('tSlipPreview').style.display='none'; $('tSlipRemove').style.display='none';
-  });
   $('txCancel').addEventListener('click', ()=> $('txOverlay').classList.remove('active'));
   $('txOverlay').addEventListener('click', e=>{ if(e.target.id==='txOverlay') $('txOverlay').classList.remove('active'); });
 
@@ -949,18 +838,11 @@
     if(!amount || amount<=0){ toast('กรุณากรอกจำนวนเงินให้ถูกต้อง', true); return; }
     if(!$('tDate').value){ toast('กรุณาเลือกวันที่', true); return; }
     const id = $('tId').value;
-    const data = {
-      id: id || undefined, type: txType, category: $('tCategory').value, amount,
-      date: $('tDate').value, note: $('tNote').value.trim(), groupId: $('tGroup').value
-    };
-    document.querySelectorAll('.t-cf-input').forEach(inp=> data[inp.dataset.cfkey] = inp.value);
-    if(tSlipCleared) data.slipUrl = '';
-    else if(tSlipBase64) data.slipBase64 = tSlipBase64;
+    const data = { id: id || undefined, type: txType, category: $('tCategory').value, amount, date: $('tDate').value, note: $('tNote').value.trim() };
     $('txSave').disabled = true;
     try{
       const res = await apiPost({ action: id ? 'updateTx' : 'addTx', password: adminPw(), data });
-      if(res.error){ toast(res.error==='unauthorized' ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' : res.error, true); }
-      else { toast('บันทึกรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
+      if(!handleAuthError(res)){ toast('บันทึกรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('txSave').disabled = false;
   });
@@ -969,15 +851,73 @@
     if(!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
     try{
       const res = await apiPost({ action:'deleteTx', password: adminPw(), data:{ id } });
-      if(res.error){ toast(res.error, true); }
-      else { toast('ลบรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
+      if(!handleAuthError(res)){ toast('ลบรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('ลบไม่สำเร็จ', true); }
+  });
+
+  // ---------- history edit ----------
+  $('editHistoryBtn').addEventListener('click', ()=>{
+    $('hFounded').value = teamInfo.founded || '';
+    $('hGround').value = teamInfo.homeGround || '';
+    $('hCoach').value = teamInfo.coach || '';
+    $('hMission').value = teamInfo.mission || '';
+    $('hHistory').value = teamInfo.history || '';
+    $('historyOverlay').classList.add('active');
+  });
+  $('historyCancel').addEventListener('click', ()=> $('historyOverlay').classList.remove('active'));
+  $('historyOverlay').addEventListener('click', e=>{ if(e.target.id==='historyOverlay') $('historyOverlay').classList.remove('active'); });
+  $('historySave').addEventListener('click', async ()=>{
+    const data = {
+      founded: $('hFounded').value.trim(), homeGround: $('hGround').value.trim(),
+      coach: $('hCoach').value.trim(), mission: $('hMission').value.trim(), history: $('hHistory').value.trim()
+    };
+    $('historySave').disabled = true;
+    try{
+      const res = await apiPost({ action:'updateTeamInfo', password: adminPw(), data });
+      if(!handleAuthError(res)){ toast('บันทึกประวัติทีมแล้ว'); $('historyOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+    $('historySave').disabled = false;
+  });
+
+  // ---------- trophy modal ----------
+  function openTrophyModal(id){
+    if(!isAdmin) return;
+    const a = achievements.find(x=>x.id===id);
+    $('trophyModalTitle').textContent = a ? 'แก้ไขรายการ' : 'เพิ่มรายการในทำเนียบแชมป์';
+    $('trId').value = a ? a.id : '';
+    $('trYear').value = a ? a.year : new Date().getFullYear()+543;
+    $('trTitle').value = a ? a.title : '';
+    $('trDetail').value = a ? a.detail : '';
+    $('trophyDelete').style.display = a ? 'block' : 'none';
+    $('trophyOverlay').classList.add('active');
+  }
+  $('trophyCancel').addEventListener('click', ()=> $('trophyOverlay').classList.remove('active'));
+  $('trophyOverlay').addEventListener('click', e=>{ if(e.target.id==='trophyOverlay') $('trophyOverlay').classList.remove('active'); });
+  $('trophySave').addEventListener('click', async ()=>{
+    const year = $('trYear').value.trim();
+    const title = $('trTitle').value.trim();
+    if(!year || !title){ toast('กรุณากรอกปีและชื่อรางวัล', true); return; }
+    const id = $('trId').value;
+    const data = { id: id || undefined, year, title, detail: $('trDetail').value.trim() };
+    $('trophySave').disabled = true;
+    try{
+      const res = await apiPost({ action: id ? 'updateAchievement' : 'addAchievement', password: adminPw(), data });
+      if(!handleAuthError(res)){ toast('บันทึกแล้ว'); $('trophyOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+    $('trophySave').disabled = false;
+  });
+  $('trophyDelete').addEventListener('click', async ()=>{
+    const id = $('trId').value;
+    if(!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
+    try{
+      const res = await apiPost({ action:'deleteAchievement', password: adminPw(), data:{ id } });
+      if(!handleAuthError(res)){ toast('ลบแล้ว'); $('trophyOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
 
   // ---------- init ----------
-  fillCategoryOptions();
   const savedPw = sessionStorage.getItem('bsfc_admin_pw');
-  if(savedPw){ isAdmin = true; } // ยืนยันสิทธิ์จริงเมื่อมีการบันทึกครั้งถัดไป (server ตรวจรหัสผ่านทุกครั้ง)
+  if(savedPw){ isAdmin = true; }
   setAdminUI();
   loadAll();
 })();
