@@ -110,6 +110,8 @@
   .tx-meta{ font-size:11.5px; color:rgba(246,243,233,0.5); margin-top:2px; }
   .tx-amt{ font-family:'Prompt'; font-weight:700; font-size:14.5px; }
   .tx-amt.income{ color:#8FD4A8; } .tx-amt.expense{ color:#E08064; }
+  .mini-tag{ display:inline-block; font-size:10px; font-weight:600; background:rgba(227,178,60,0.15); color:var(--gold); padding:1px 7px; border-radius:999px; margin-left:6px; vertical-align:middle;}
+  .clip{ margin-left:4px; font-size:11px; text-decoration:none; }
 
   .filters{ display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;}
   .chip{ flex-shrink:0; font-size:12.5px; padding:6px 12px; border-radius:999px; border:1px solid var(--line);
@@ -154,6 +156,34 @@
   .edit-hint{ text-align:center; font-size:12px; color:rgba(246,243,233,0.4); margin-top:4px; }
   .setup-banner{ margin:16px; padding:16px; border:1px dashed var(--brick); border-radius:var(--radius); font-size:13px; line-height:1.6; color:rgba(246,243,233,0.75); }
   .setup-banner code{ background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:5px; font-size:12px; }
+
+  /* ---------- settings ---------- */
+  .settings-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 4px; border-bottom:1px solid var(--line); gap:10px; }
+  .settings-row:last-child{ border-bottom:none; }
+  .sr-name{ font-size:14px; font-weight:600; }
+  .sr-type{ font-weight:400; font-size:12px; color:rgba(246,243,233,0.5); }
+  .sr-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .icon-btn{ border:1px solid var(--line); background:transparent; color:rgba(246,243,233,0.7); font-size:12px;
+    padding:5px 10px; border-radius:8px; cursor:pointer; font-weight:600; white-space:nowrap;}
+  .icon-btn.danger{ color:#E08064; border-color:rgba(224,128,100,0.35); }
+  .add-inline{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .add-inline input, .add-inline select{ flex:1; min-width:110px; background:rgba(255,255,255,0.05); border:1px solid var(--line);
+    border-radius:10px; padding:10px 12px; color:var(--chalk); font-size:13.5px; font-family:'Sarabun';}
+  .add-inline .btn{ flex:none; padding:10px 16px; }
+  .tag-list{ display:flex; flex-wrap:wrap; gap:8px; }
+  .tag{ display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,0.06); border:1px solid var(--line);
+    border-radius:999px; padding:6px 6px 6px 12px; font-size:13px;}
+  .tag-x{ border:none; background:rgba(224,128,100,0.18); color:#E08064; width:18px; height:18px; border-radius:50%;
+    font-size:12px; cursor:pointer; line-height:1; flex-shrink:0;}
+  .empty-mini{ font-size:12.5px; color:rgba(246,243,233,0.4); padding:4px; }
+
+  /* ---------- uploads ---------- */
+  .photo-upload{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .avatar-preview{ width:56px; height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--line); flex-shrink:0;}
+  .slip-preview{ width:70px; height:70px; border-radius:10px; object-fit:cover; border:1px solid var(--line); flex-shrink:0;}
+  input[type="file"]{ font-size:12px; color:rgba(246,243,233,0.65); flex:1; min-width:140px;}
+  .remove-link{ font-size:11.5px; color:rgba(224,128,100,0.85); text-decoration:underline; cursor:pointer; margin-top:6px; display:none;}
+  .jersey.has-photo{ background-size:cover; background-position:center; }
 </style>
 </head>
 <body>
@@ -186,6 +216,7 @@
   <button class="tab-btn active" data-tab="dashboard">ภาพรวม</button>
   <button class="tab-btn" data-tab="players">นักเตะ</button>
   <button class="tab-btn" data-tab="finance">การเงิน</button>
+  <button class="tab-btn" data-tab="settings" id="tabSettingsBtn" style="display:none;">ตั้งค่า</button>
 </nav>
 
 <main>
@@ -197,6 +228,10 @@
     <div class="card">
       <div class="section-title">รายรับ-รายจ่าย 6 เดือนล่าสุด</div>
       <div class="chart" id="chart"></div>
+    </div>
+    <div class="card" id="groupSummaryCard" style="display:none;">
+      <div class="section-title">สรุปยอดตามกลุ่ม</div>
+      <div id="groupSummaryList"></div>
     </div>
     <div class="card">
       <div class="section-title">รายการล่าสุด <span class="count" id="recentCount"></span></div>
@@ -217,7 +252,29 @@
       <button class="chip" data-f="income">รายรับ</button>
       <button class="chip" data-f="expense">รายจ่าย</button>
     </div>
+    <div class="filters" id="txGroupFilters"></div>
     <div class="card" style="padding:4px 10px;"><div id="txList"></div></div>
+  </section>
+
+  <section class="view" id="view-settings">
+    <div class="section-title">กลุ่มรายรับ-รายจ่าย</div>
+    <p class="edit-hint" style="margin:-6px 0 12px;">เช่น แบ่งบัญชีตามรุ่นอายุ U12 / U14 — ใช้เลือกตอนเพิ่มรายการการเงิน</p>
+    <div class="card" id="groupsCard"></div>
+
+    <div class="section-title" style="margin-top:20px;">หมวดหมู่รายรับ-รายจ่าย</div>
+    <div class="filters" id="catTypeTabs">
+      <button class="chip active" data-ct="income">หมวดรายรับ</button>
+      <button class="chip" data-ct="expense">หมวดรายจ่าย</button>
+    </div>
+    <div class="card" id="categoriesCard"></div>
+
+    <div class="section-title" style="margin-top:20px;">ช่องข้อมูลนักเตะเพิ่มเติม</div>
+    <p class="edit-hint" style="margin:-6px 0 12px;">เช่น ชื่อเล่น, ขนาดเสื้อ, โรงเรียน — จะไปโผล่ในฟอร์มเพิ่ม/แก้ไขนักเตะอัตโนมัติ</p>
+    <div class="card" id="playerFieldsCard"></div>
+
+    <div class="section-title" style="margin-top:20px;">ช่องข้อมูลรายการเพิ่มเติม</div>
+    <p class="edit-hint" style="margin:-6px 0 12px;">เช่น ผู้รับผิดชอบ, เลขที่ใบเสร็จ — จะไปโผล่ในฟอร์มเพิ่ม/แก้ไขรายรับ-รายจ่าย</p>
+    <div class="card" id="txFieldsCard"></div>
   </section>
 </main>
 
@@ -244,6 +301,14 @@
   <div class="sheet">
     <h3 id="playerModalTitle">เพิ่มนักเตะ</h3>
     <input type="hidden" id="pId">
+    <div class="field">
+      <label>รูปนักเตะ</label>
+      <div class="photo-upload">
+        <img id="pPhotoPreview" class="avatar-preview" style="display:none;">
+        <input type="file" accept="image/*" id="pPhotoFile">
+      </div>
+      <span class="remove-link" id="pPhotoRemove">ลบรูปนี้</span>
+    </div>
     <div class="field"><label>ชื่อ-นามสกุล</label><input id="pName" placeholder="เช่น สมชาย ใจดี"></div>
     <div class="field"><label>เบอร์เสื้อ</label><input id="pNumber" type="number" placeholder="เช่น 9"></div>
     <div class="field"><label>ตำแหน่ง</label>
@@ -263,6 +328,7 @@
         <option value="leave">ลา/ไม่พร้อม</option>
       </select>
     </div>
+    <div id="pCustomFieldsWrap"></div>
     <div class="btn-row">
       <button class="btn ghost" id="playerCancel">ยกเลิก</button>
       <button class="btn danger" id="playerDelete" style="display:none;">ลบ</button>
@@ -283,10 +349,20 @@
         <button type="button" class="expense" id="segExpense">รายจ่าย</button>
       </div>
     </div>
+    <div class="field"><label>กลุ่ม</label><select id="tGroup"></select></div>
     <div class="field"><label>หมวดหมู่</label><select id="tCategory"></select></div>
     <div class="field"><label>จำนวนเงิน (บาท)</label><input id="tAmount" type="number" placeholder="0"></div>
     <div class="field"><label>วันที่</label><input id="tDate" type="date"></div>
     <div class="field"><label>หมายเหตุ</label><input id="tNote" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></div>
+    <div class="field">
+      <label>แนบสลิป/หลักฐาน (ถ้ามี)</label>
+      <div class="photo-upload">
+        <img id="tSlipPreview" class="slip-preview" style="display:none;">
+        <input type="file" accept="image/*" id="tSlipFile">
+      </div>
+      <span class="remove-link" id="tSlipRemove">ลบรูปนี้</span>
+    </div>
+    <div id="tCustomFieldsWrap"></div>
     <div class="btn-row">
       <button class="btn ghost" id="txCancel">ยกเลิก</button>
       <button class="btn danger" id="txDelete" style="display:none;">ลบ</button>
@@ -303,17 +379,29 @@
   // ตั้งค่า: วางลิงก์ Web App ของ Google Apps Script ตรงนี้
   // (Deploy > New deployment > Web app > Who has access: Anyone)
   // ============================================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFk9S8KXdGckGbri42TbwioFZQoOb7GMTwLNJg4JHlBUwEEF9oJzlHmulDgC8AHjExtg/exec";
+  const SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
-  const CATS = {
-    income: ['ค่าสมาชิก','สปอนเซอร์','เงินรางวัล','อื่นๆ'],
-    expense: ['ค่าสนาม','ค่าอุปกรณ์','ค่าเดินทาง','ค่าเสื้อ/ชุดแข่ง','ค่าจัดการอื่นๆ']
+  const DEFAULT_SETTINGS = {
+    groups: [{id:'g_u12',name:'U12'},{id:'g_u14',name:'U14'}],
+    categories: {
+      income: ['ค่าสมาชิก','สปอนเซอร์','เงินรางวัล','อื่นๆ'],
+      expense: ['ค่าสนาม','ค่าอุปกรณ์','ค่าเดินทาง','ค่าเสื้อ/ชุดแข่ง','ค่าจัดการอื่นๆ']
+    },
+    customFields: { players: [], transactions: [] }
   };
+
   let players = [];
   let txs = [];
+  let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
   let txFilter = 'all';
+  let txGroupFilter = 'all';
   let txType = 'income';
+  let catType = 'income';
   let isAdmin = false;
+
+  // photo/slip upload state
+  let pPhotoBase64 = null, pPhotoCleared = false;
+  let tSlipBase64 = null, tSlipCleared = false;
 
   const $ = id => document.getElementById(id);
   const fmt = n => '฿' + Number(n||0).toLocaleString('th-TH', {maximumFractionDigits:0});
@@ -322,6 +410,8 @@
     t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
   };
   const configured = () => SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1;
+  const escapeHTML = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fieldTypeLabel = t => ({text:'ข้อความ',number:'ตัวเลข',date:'วันที่'}[t] || t);
 
   // ---------- API ----------
   async function apiGet(){
@@ -343,20 +433,61 @@
       const data = await apiGet();
       players = (data.players || []).map(normalizePlayer);
       txs = (data.transactions || []).map(normalizeTx);
+      if(data.settings){
+        settings = data.settings;
+        if(!settings.customFields) settings.customFields = { players: [], transactions: [] };
+        if(!settings.customFields.players) settings.customFields.players = [];
+        if(!settings.customFields.transactions) settings.customFields.transactions = [];
+        if(!settings.groups) settings.groups = [];
+        if(!settings.categories) settings.categories = DEFAULT_SETTINGS.categories;
+      }
       render();
     }catch(e){
       toast('โหลดข้อมูลไม่สำเร็จ ตรวจสอบการเชื่อมต่อ', true);
     }
   }
   function normalizePlayer(p){
-    return { id: String(p.id), name: p.name||'', number: p.number===''? null : p.number,
-      position: p.position||'', age: p.age===''? null : p.age, phone: p.phone||'', status: p.status||'active' };
+    const out = Object.assign({}, p);
+    out.id = String(p.id); out.name = p.name||''; out.number = p.number===''? null : p.number;
+    out.position = p.position||''; out.age = p.age===''? null : p.age; out.phone = p.phone||'';
+    out.status = p.status||'active'; out.photoUrl = p.photoUrl||'';
+    return out;
   }
   function normalizeTx(t){
-    return { id: String(t.id), type: t.type, category: t.category||'',
-      amount: Number(t.amount)||0, date: t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10), note: t.note||'' };
+    const out = Object.assign({}, t);
+    out.id = String(t.id); out.type = t.type; out.category = t.category||'';
+    out.amount = Number(t.amount)||0;
+    out.date = t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10);
+    out.note = t.note||''; out.groupId = t.groupId||''; out.slipUrl = t.slipUrl||'';
+    return out;
   }
   function isoDate(d){ return d.toISOString().slice(0,10); }
+  function groupName(id){ const g = settings.groups.find(x=>x.id===id); return g ? g.name : ''; }
+
+  // ---------- image helpers (ย่อขนาดก่อนอัปโหลดให้เร็วและประหยัดพื้นที่) ----------
+  function fileToResizedDataURL(file, maxDim, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        const img = new Image();
+        img.onload = ()=>{
+          let { width, height } = img;
+          if(width > maxDim || height > maxDim){
+            if(width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
+            else { width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
   // ---------- auth ----------
   function setAdminUI(){
@@ -364,6 +495,10 @@
     $('authBtn').classList.toggle('on', isAdmin);
     $('brandSub').textContent = isAdmin ? 'ระบบจัดการทีม · โหมดแอดมิน' : 'ระบบจัดการทีม · ดูข้อมูลอย่างเดียว';
     $('playerHint').style.display = isAdmin ? 'block' : 'none';
+    $('tabSettingsBtn').style.display = isAdmin ? 'block' : 'none';
+    if(!isAdmin && activeTab()==='settings'){
+      document.querySelector('.tab-btn[data-tab="dashboard"]').click();
+    }
     fabMode();
     render();
   }
@@ -398,21 +533,24 @@
   // ---------- tabs ----------
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      if(btn.dataset.tab==='settings' && !isAdmin) return;
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
       btn.classList.add('active');
       $('view-' + btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab==='settings') renderAllSettings();
       fabMode();
     });
   });
   function activeTab(){ return document.querySelector('.tab-btn.active').dataset.tab; }
   function fabMode(){
-    $('fabBtn').style.display = (isAdmin && activeTab() !== 'dashboard') ? 'flex' : 'none';
+    $('fabBtn').style.display = (isAdmin && (activeTab()==='players'||activeTab()==='finance')) ? 'flex' : 'none';
   }
 
   // ---------- render ----------
   function render(){
-    renderScoreboard(); renderDashboard(); renderPlayers(); renderTx(); fabMode();
+    renderScoreboard(); renderDashboard(); renderPlayers(); renderTxGroupFilters(); renderTx(); fabMode();
+    if(activeTab()==='settings') renderAllSettings();
   }
   function monthKey(d){ return d.slice(0,7); }
   function thisMonthKey(){ return new Date().toISOString().slice(0,7); }
@@ -454,11 +592,26 @@
       </div><div class="m-lbl">${label}</div></div>`;
     }).join('');
 
+    renderGroupSummary();
+
     const recent = [...txs].sort((a,b)=> b.date.localeCompare(a.date)).slice(0,5);
     $('recentCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
     $('recentTx').innerHTML = recent.length ? recent.map(txRowHTML).join('') :
       `<div class="empty">ยังไม่มีรายการรายรับ-รายจ่าย</div>`;
     attachTxHandlers($('recentTx'));
+  }
+
+  function renderGroupSummary(){
+    const hasAny = txs.some(t=>t.groupId);
+    if(!settings.groups.length || !hasAny){ $('groupSummaryCard').style.display='none'; return; }
+    $('groupSummaryCard').style.display='block';
+    $('groupSummaryList').innerHTML = settings.groups.map(g=>{
+      const bal = txs.filter(t=>t.groupId===g.id).reduce((s,t)=> s + (t.type==='income'?Number(t.amount):-Number(t.amount)), 0);
+      return `<div class="tx-row">
+        <div class="tx-info"><div class="tx-cat">${escapeHTML(g.name)}</div></div>
+        <div class="tx-amt ${bal>=0?'income':'expense'}">${bal>=0?'+':''}${fmt(bal)}</div>
+      </div>`;
+    }).join('');
   }
 
   function renderPlayers(){
@@ -467,11 +620,13 @@
     $('playerList').innerHTML = sorted.length ? sorted.map(p=>{
       const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
       const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
+      const cfText = settings.customFields.players.map(f=> p[f.key] ? `${f.label}: ${p[f.key]}` : null).filter(Boolean).join(' · ');
+      const jerseyStyle = p.photoUrl ? `style="background-image:url('${p.photoUrl}')"` : '';
       return `<div class="player-row" data-id="${p.id}" style="cursor:${isAdmin?'pointer':'default'}">
-        <div class="jersey">${p.number ?? '-'}</div>
+        <div class="jersey ${p.photoUrl?'has-photo':''}" ${jerseyStyle}>${p.photoUrl?'':(p.number ?? '-')}</div>
         <div class="p-info">
           <div class="p-name">${escapeHTML(p.name)}</div>
-          <div class="p-meta">${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี</div>
+          <div class="p-meta">${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี${cfText? ' · '+escapeHTML(cfText):''}</div>
         </div>
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>`;
@@ -485,10 +640,11 @@
 
   function txRowHTML(t){
     const cat = t.category || (t.type==='income'?'รายรับ':'รายจ่าย');
+    const gname = t.groupId ? groupName(t.groupId) : '';
     return `<div class="tx-row" data-id="${t.id}" style="cursor:${isAdmin?'pointer':'default'}">
       <div class="tx-dot ${t.type}"></div>
       <div class="tx-info">
-        <div class="tx-cat">${escapeHTML(cat)}</div>
+        <div class="tx-cat">${escapeHTML(cat)}${gname?`<span class="mini-tag">${escapeHTML(gname)}</span>`:''}${t.slipUrl?'<span class="clip">📎</span>':''}</div>
         <div class="tx-meta">${t.date}${t.note? ' · '+escapeHTML(t.note):''}</div>
       </div>
       <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
@@ -501,8 +657,21 @@
     });
   }
 
+  function renderTxGroupFilters(){
+    const el = $('txGroupFilters');
+    if(!settings.groups.length){ el.innerHTML=''; txGroupFilter='all'; return; }
+    el.innerHTML = `<button class="chip ${txGroupFilter==='all'?'active':''}" data-g="all">ทุกกลุ่ม</button>` +
+      settings.groups.map(g=>`<button class="chip ${txGroupFilter===g.id?'active':''}" data-g="${g.id}">${escapeHTML(g.name)}</button>`).join('');
+    el.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        el.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active'); txGroupFilter = chip.dataset.g; renderTx();
+      });
+    });
+  }
+
   function renderTx(){
-    const filtered = txFilter==='all' ? txs : txs.filter(t=>t.type===txFilter);
+    const filtered = txs.filter(t => (txFilter==='all'||t.type===txFilter) && (txGroupFilter==='all'||t.groupId===txGroupFilter));
     const sorted = [...filtered].sort((a,b)=> b.date.localeCompare(a.date));
     $('txCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
     $('txList').innerHTML = sorted.length ? sorted.map(txRowHTML).join('') : `<div class="empty">ไม่พบรายการ</div>`;
@@ -514,9 +683,136 @@
       chip.classList.add('active'); txFilter = chip.dataset.f; renderTx();
     });
   });
-  function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---------- settings screens (admin only) ----------
+  async function saveSettings(){
+    try{
+      const res = await apiPost({ action:'updateSettings', password: adminPw(), data: settings });
+      if(res.error){ toast(res.error==='unauthorized' ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' : res.error, true); }
+      else { toast('บันทึกการตั้งค่าแล้ว'); await loadAll(); if(activeTab()==='settings') renderAllSettings(); }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+  }
+
+  function renderAllSettings(){
+    renderGroupsSettings();
+    renderCategoriesSettings();
+    renderCustomFieldsSettings('players', 'playerFieldsCard');
+    renderCustomFieldsSettings('transactions', 'txFieldsCard');
+  }
+
+  function renderGroupsSettings(){
+    const el = $('groupsCard');
+    const rows = settings.groups.length ? settings.groups.map(g=>`
+      <div class="settings-row" data-id="${g.id}">
+        <span class="sr-name">${escapeHTML(g.name)}</span>
+        <span class="sr-actions">
+          <button class="icon-btn rename-group" data-id="${g.id}">แก้ไขชื่อ</button>
+          <button class="icon-btn danger delete-group" data-id="${g.id}">ลบ</button>
+        </span>
+      </div>`).join('') : `<div class="empty-mini">ยังไม่มีกลุ่ม</div>`;
+    el.innerHTML = rows + `
+      <div class="add-inline">
+        <input id="newGroupName" placeholder="ชื่อกลุ่มใหม่ เช่น U16">
+        <button class="btn primary" id="addGroupBtn">เพิ่มกลุ่ม</button>
+      </div>`;
+    el.querySelectorAll('.rename-group').forEach(b=> b.addEventListener('click', ()=> renameGroup(b.dataset.id)));
+    el.querySelectorAll('.delete-group').forEach(b=> b.addEventListener('click', ()=> deleteGroup(b.dataset.id)));
+    $('addGroupBtn').addEventListener('click', addGroup);
+  }
+  function addGroup(){
+    const input = $('newGroupName'); const name = input.value.trim();
+    if(!name) return;
+    settings.groups.push({ id: 'g_' + Date.now().toString(36), name });
+    input.value=''; saveSettings();
+  }
+  function renameGroup(id){
+    const g = settings.groups.find(x=>x.id===id); if(!g) return;
+    const name = prompt('แก้ไขชื่อกลุ่ม', g.name);
+    if(name===null) return;
+    const trimmed = name.trim(); if(!trimmed) return;
+    g.name = trimmed; saveSettings();
+  }
+  function deleteGroup(id){
+    if(!confirm('ลบกลุ่มนี้ใช่หรือไม่? รายการที่เคยอยู่ในกลุ่มนี้จะกลายเป็น "ไม่ระบุกลุ่ม"')) return;
+    settings.groups = settings.groups.filter(x=>x.id!==id);
+    saveSettings();
+  }
+
+  function renderCategoriesSettings(){
+    const list = settings.categories[catType] || [];
+    const el = $('categoriesCard');
+    el.innerHTML = (list.length ? `<div class="tag-list">` + list.map((c,i)=>
+        `<span class="tag">${escapeHTML(c)}<button class="tag-x" data-i="${i}">×</button></span>`).join('') + `</div>`
+      : `<div class="empty-mini">ยังไม่มีหมวดหมู่</div>`) + `
+      <div class="add-inline">
+        <input id="newCatName" placeholder="เพิ่มหมวดหมู่ใหม่">
+        <button class="btn primary" id="addCatBtn">เพิ่ม</button>
+      </div>`;
+    el.querySelectorAll('.tag-x').forEach(b=> b.addEventListener('click', ()=>{
+      settings.categories[catType].splice(parseInt(b.dataset.i,10),1);
+      saveSettings();
+    }));
+    $('addCatBtn').addEventListener('click', ()=>{
+      const input = $('newCatName'); const v = input.value.trim();
+      if(!v) return;
+      if(!settings.categories[catType].includes(v)) settings.categories[catType].push(v);
+      input.value=''; saveSettings();
+    });
+  }
+  document.querySelectorAll('#catTypeTabs .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#catTypeTabs .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); catType = chip.dataset.ct; renderCategoriesSettings();
+    });
+  });
+
+  function renderCustomFieldsSettings(entity, elId){
+    const list = settings.customFields[entity] || [];
+    const el = $(elId);
+    const rows = list.length ? list.map((f,i)=>`
+      <div class="settings-row">
+        <span class="sr-name">${escapeHTML(f.label)} <span class="sr-type">(${fieldTypeLabel(f.type)})</span></span>
+        <span class="sr-actions"><button class="icon-btn danger del-cf" data-i="${i}">ลบ</button></span>
+      </div>`).join('') : `<div class="empty-mini">ยังไม่มีช่องข้อมูลเพิ่มเติม</div>`;
+    el.innerHTML = rows + `
+      <div class="add-inline">
+        <input id="newLabel_${entity}" placeholder="ชื่อช่องข้อมูล">
+        <select id="newType_${entity}">
+          <option value="text">ข้อความ</option>
+          <option value="number">ตัวเลข</option>
+          <option value="date">วันที่</option>
+        </select>
+        <button class="btn primary" id="addBtn_${entity}">เพิ่ม</button>
+      </div>`;
+    el.querySelectorAll('.del-cf').forEach(b=> b.addEventListener('click', ()=>{
+      settings.customFields[entity].splice(parseInt(b.dataset.i,10),1);
+      saveSettings();
+    }));
+    $(`addBtn_${entity}`).addEventListener('click', ()=>{
+      const labelInput = $(`newLabel_${entity}`); const typeInput = $(`newType_${entity}`);
+      const label = labelInput.value.trim(); const type = typeInput.value;
+      if(!label) return;
+      const key = 'cf_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+      settings.customFields[entity].push({ key, label, type });
+      labelInput.value=''; saveSettings();
+    });
+  }
 
   // ---------- player modal ----------
+  function fillGroupOptions(){
+    $('tGroup').innerHTML = `<option value="">ไม่ระบุกลุ่ม</option>` +
+      settings.groups.map(g=>`<option value="${g.id}">${escapeHTML(g.name)}</option>`).join('');
+  }
+
+  function renderPlayerCustomFields(p){
+    $('pCustomFieldsWrap').innerHTML = settings.customFields.players.map(f=>{
+      const val = p ? (p[f.key] ?? '') : '';
+      const inputType = f.type==='number' ? 'number' : f.type==='date' ? 'date' : 'text';
+      return `<div class="field"><label>${escapeHTML(f.label)}</label>
+        <input data-cfkey="${f.key}" type="${inputType}" class="p-cf-input" value="${escapeHTML(String(val))}"></div>`;
+    }).join('');
+  }
+
   function openPlayerModal(id){
     if(!isAdmin) return;
     const p = players.find(x=>x.id===id);
@@ -529,8 +825,26 @@
     $('pPhone').value = p ? p.phone : '';
     $('pStatus').value = p ? p.status : 'active';
     $('playerDelete').style.display = p ? 'block' : 'none';
+    pPhotoBase64 = null; pPhotoCleared = false; $('pPhotoFile').value = '';
+    if(p && p.photoUrl){ $('pPhotoPreview').src = p.photoUrl; $('pPhotoPreview').style.display='block'; $('pPhotoRemove').style.display='inline-block'; }
+    else { $('pPhotoPreview').style.display='none'; $('pPhotoRemove').style.display='none'; }
+    renderPlayerCustomFields(p);
     $('playerOverlay').classList.add('active');
   }
+  $('pPhotoFile').addEventListener('change', async e=>{
+    const file = e.target.files[0]; if(!file) return;
+    try{
+      const dataUrl = await fileToResizedDataURL(file, 800, 0.82);
+      pPhotoBase64 = dataUrl; pPhotoCleared = false;
+      $('pPhotoPreview').src = dataUrl; $('pPhotoPreview').style.display='block';
+      $('pPhotoRemove').style.display='inline-block';
+    }catch(err){ toast('อ่านไฟล์รูปไม่สำเร็จ', true); }
+  });
+  $('pPhotoRemove').addEventListener('click', ()=>{
+    pPhotoBase64 = null; pPhotoCleared = true; $('pPhotoFile').value='';
+    $('pPhotoPreview').style.display='none'; $('pPhotoRemove').style.display='none';
+  });
+
   $('fabBtn').addEventListener('click', ()=>{
     if(!isAdmin) return;
     if(activeTab()==='players') openPlayerModal(null);
@@ -551,6 +865,9 @@
       phone: $('pPhone').value.trim(),
       status: $('pStatus').value
     };
+    document.querySelectorAll('.p-cf-input').forEach(inp=> data[inp.dataset.cfkey] = inp.value);
+    if(pPhotoCleared) data.photoUrl = '';
+    else if(pPhotoBase64) data.photoBase64 = pPhotoBase64;
     $('playerSave').disabled = true;
     try{
       const res = await apiPost({ action: id ? 'updatePlayer' : 'addPlayer', password: adminPw(), data });
@@ -570,7 +887,10 @@
   });
 
   // ---------- tx modal ----------
-  function fillCategoryOptions(){ $('tCategory').innerHTML = CATS[txType].map(c=>`<option value="${c}">${c}</option>`).join(''); }
+  function fillCategoryOptions(){
+    const list = settings.categories[txType] || [];
+    $('tCategory').innerHTML = list.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+  }
   function setTxType(type){
     txType = type;
     $('segIncome').classList.toggle('on', type==='income');
@@ -580,19 +900,47 @@
   $('segIncome').addEventListener('click', ()=> setTxType('income'));
   $('segExpense').addEventListener('click', ()=> setTxType('expense'));
 
+  function renderTxCustomFields(t){
+    $('tCustomFieldsWrap').innerHTML = settings.customFields.transactions.map(f=>{
+      const val = t ? (t[f.key] ?? '') : '';
+      const inputType = f.type==='number' ? 'number' : f.type==='date' ? 'date' : 'text';
+      return `<div class="field"><label>${escapeHTML(f.label)}</label>
+        <input data-cfkey="${f.key}" type="${inputType}" class="t-cf-input" value="${escapeHTML(String(val))}"></div>`;
+    }).join('');
+  }
+
   function openTxModal(id){
     if(!isAdmin) return;
     const t = txs.find(x=>x.id===id);
     $('txModalTitle').textContent = t ? 'แก้ไขรายการ' : 'เพิ่มรายการ';
     $('tId').value = t ? t.id : '';
+    fillGroupOptions();
+    $('tGroup').value = t ? (t.groupId||'') : (txGroupFilter!=='all' ? txGroupFilter : '');
     setTxType(t ? t.type : 'income');
-    $('tCategory').value = t ? t.category : CATS[txType][0];
+    $('tCategory').value = t ? t.category : ((settings.categories[txType]||[])[0]||'');
     $('tAmount').value = t ? t.amount : '';
     $('tDate').value = t ? t.date : new Date().toISOString().slice(0,10);
     $('tNote').value = t ? (t.note||'') : '';
     $('txDelete').style.display = t ? 'block' : 'none';
+    tSlipBase64 = null; tSlipCleared = false; $('tSlipFile').value = '';
+    if(t && t.slipUrl){ $('tSlipPreview').src = t.slipUrl; $('tSlipPreview').style.display='block'; $('tSlipRemove').style.display='inline-block'; }
+    else { $('tSlipPreview').style.display='none'; $('tSlipRemove').style.display='none'; }
+    renderTxCustomFields(t);
     $('txOverlay').classList.add('active');
   }
+  $('tSlipFile').addEventListener('change', async e=>{
+    const file = e.target.files[0]; if(!file) return;
+    try{
+      const dataUrl = await fileToResizedDataURL(file, 1000, 0.8);
+      tSlipBase64 = dataUrl; tSlipCleared = false;
+      $('tSlipPreview').src = dataUrl; $('tSlipPreview').style.display='block';
+      $('tSlipRemove').style.display='inline-block';
+    }catch(err){ toast('อ่านไฟล์รูปไม่สำเร็จ', true); }
+  });
+  $('tSlipRemove').addEventListener('click', ()=>{
+    tSlipBase64 = null; tSlipCleared = true; $('tSlipFile').value='';
+    $('tSlipPreview').style.display='none'; $('tSlipRemove').style.display='none';
+  });
   $('txCancel').addEventListener('click', ()=> $('txOverlay').classList.remove('active'));
   $('txOverlay').addEventListener('click', e=>{ if(e.target.id==='txOverlay') $('txOverlay').classList.remove('active'); });
 
@@ -601,7 +949,13 @@
     if(!amount || amount<=0){ toast('กรุณากรอกจำนวนเงินให้ถูกต้อง', true); return; }
     if(!$('tDate').value){ toast('กรุณาเลือกวันที่', true); return; }
     const id = $('tId').value;
-    const data = { id: id || undefined, type: txType, category: $('tCategory').value, amount, date: $('tDate').value, note: $('tNote').value.trim() };
+    const data = {
+      id: id || undefined, type: txType, category: $('tCategory').value, amount,
+      date: $('tDate').value, note: $('tNote').value.trim(), groupId: $('tGroup').value
+    };
+    document.querySelectorAll('.t-cf-input').forEach(inp=> data[inp.dataset.cfkey] = inp.value);
+    if(tSlipCleared) data.slipUrl = '';
+    else if(tSlipBase64) data.slipBase64 = tSlipBase64;
     $('txSave').disabled = true;
     try{
       const res = await apiPost({ action: id ? 'updateTx' : 'addTx', password: adminPw(), data });
