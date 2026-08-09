@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<title>บ้านสร้าง FC | ระบบจัดการทีม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch-dark:#122A22; --pitch:#1E4A38; --pitch-mid:#2F6F4E;
+    --chalk:#F6F3E9; --gold:#E3B23C; --brick:#B5533C; --ink:#12241C;
+    --line: rgba(246,243,233,0.14); --card: #16352A; --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--pitch-dark);
+    background-image: radial-gradient(circle at 50% -10%, rgba(227,178,60,0.10), transparent 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 64px);
+    color: var(--chalk); font-family: 'Sarabun', sans-serif; min-height: 100vh;
+    -webkit-tap-highlight-color: transparent; padding-bottom: 90px;
+  }
+  h1,h2,h3,.display{ font-family:'Prompt', sans-serif; }
+  button{ font-family:'Sarabun', sans-serif; }
+
+  header.top{
+    padding: 22px 18px 16px; display:flex; align-items:center; gap:14px; justify-content:space-between;
+    border-bottom: 1px solid var(--line); position: sticky; top:0; z-index:20;
+    background: linear-gradient(180deg, var(--pitch-dark) 70%, rgba(18,42,34,0.92)); backdrop-filter: blur(6px);
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .crest{
+    width:52px; height:52px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--pitch-mid), var(--pitch-dark) 75%);
+    border: 2px solid var(--gold); display:flex; align-items:center; justify-content:center;
+    font-family:'Prompt'; font-weight:800; font-size:16px; color:var(--gold); flex-shrink:0;
+    box-shadow: 0 0 0 3px rgba(227,178,60,0.08);
+  }
+  .brand-name{ font-family:'Prompt'; font-weight:800; font-size:19px; letter-spacing:0.3px; line-height:1.15;}
+  .brand-sub{ font-size:12px; color: rgba(246,243,233,0.55); margin-top:2px; letter-spacing:0.5px;}
+  .auth-btn{
+    border:1px solid var(--line); background:transparent; color:rgba(246,243,233,0.75);
+    font-size:12px; padding:7px 12px; border-radius:999px; cursor:pointer; flex-shrink:0; font-weight:600;
+  }
+  .auth-btn.on{ background: var(--gold); color:var(--ink); border-color:var(--gold); }
+
+  .scoreboard{
+    margin: 18px 16px 8px; border-radius: var(--radius);
+    background: linear-gradient(160deg, var(--pitch) 0%, var(--pitch-dark) 100%);
+    border: 1px solid var(--line); padding: 18px 16px;
+    display:flex; justify-content:space-between; align-items:stretch; gap:8px; position:relative; overflow:hidden;
+  }
+  .scoreboard::before{ content:""; position:absolute; inset:0;
+    background: repeating-linear-gradient(90deg, transparent 0 38px, rgba(255,255,255,0.025) 38px 39px); pointer-events:none; }
+  .sb-cell{ text-align:center; flex:1; z-index:1; }
+  .sb-label{ font-size:10.5px; letter-spacing:1.2px; color:rgba(246,243,233,0.5); text-transform:uppercase; margin-bottom:6px;}
+  .sb-value{ font-family:'Prompt'; font-weight:700; font-size:22px; font-variant-numeric: tabular-nums;}
+  .sb-value.gold{ color:var(--gold); }
+  .sb-value.brick{ color:#E08064; }
+  .sb-div{ width:1px; background:var(--line); }
+
+  nav.tabs{ display:flex; gap:6px; margin: 18px 16px 4px; background: rgba(255,255,255,0.04);
+    border-radius: 999px; padding:4px; border: 1px solid var(--line); }
+  nav.tabs button{ flex:1; border:none; background:transparent; color:rgba(246,243,233,0.6);
+    padding:9px 6px; border-radius:999px; font-size:13.5px; font-weight:600; cursor:pointer; transition: all .18s ease; }
+  nav.tabs button.active{ background: var(--gold); color:var(--ink); }
+
+  main{ padding: 16px; max-width: 640px; margin: 0 auto; }
+  section.view{ display:none; animation: fade .25s ease; }
+  section.view.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  .section-title{ font-size:15px; font-weight:700; margin: 4px 0 12px; display:flex; align-items:center; justify-content:space-between;}
+  .section-title span.count{ font-weight:400; font-size:12.5px; color:rgba(246,243,233,0.5);}
+
+  .card{ background: var(--card); border:1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px;}
+  .stat .num{ font-family:'Prompt'; font-weight:700; font-size:21px; }
+  .stat .lbl{ font-size:11.5px; color:rgba(246,243,233,0.55); margin-top:3px;}
+  .stat.income .num{ color:#8FD4A8; } .stat.expense .num{ color:#E08064; }
+
+  .chart{ display:flex; align-items:flex-end; gap:8px; height:120px; padding:10px 4px 0; }
+  .chart .bargroup{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+  .chart .bars{ display:flex; gap:3px; align-items:flex-end; height:88px; width:100%; justify-content:center;}
+  .chart .bar{ width:9px; border-radius:3px 3px 0 0; background:var(--pitch-mid); min-height:2px; }
+  .chart .bar.exp{ background:var(--brick); }
+  .chart .m-lbl{ font-size:10px; color:rgba(246,243,233,0.5); margin-top:6px;}
+
+  .player-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); }
+  .player-row:last-child{ border-bottom:none; }
+  .jersey{ width:38px; height:38px; border-radius:9px; background:var(--pitch-mid);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Prompt'; font-weight:800; font-size:15px; color:var(--chalk); border: 1px solid var(--line); }
+  .p-info{ flex:1; min-width:0; }
+  .p-name{ font-weight:600; font-size:14.5px; }
+  .p-meta{ font-size:12px; color:rgba(246,243,233,0.55); margin-top:2px; }
+  .badge{ font-size:10.5px; padding:2px 8px; border-radius:999px; font-weight:600; }
+  .badge.active{ background:rgba(143,212,168,0.15); color:#8FD4A8; }
+  .badge.injured{ background:rgba(224,128,100,0.15); color:#E08064; }
+  .badge.leave{ background:rgba(246,243,233,0.12); color:rgba(246,243,233,0.6); }
+
+  .tx-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); }
+  .tx-row:last-child{ border-bottom:none; }
+  .tx-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .tx-dot.income{ background:#8FD4A8; } .tx-dot.expense{ background:#E08064; }
+  .tx-info{ flex:1; min-width:0; }
+  .tx-cat{ font-weight:600; font-size:14px; }
+  .tx-meta{ font-size:11.5px; color:rgba(246,243,233,0.5); margin-top:2px; }
+  .tx-amt{ font-family:'Prompt'; font-weight:700; font-size:14.5px; }
+  .tx-amt.income{ color:#8FD4A8; } .tx-amt.expense{ color:#E08064; }
+
+  .filters{ display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;}
+  .chip{ flex-shrink:0; font-size:12.5px; padding:6px 12px; border-radius:999px; border:1px solid var(--line);
+    background:transparent; color:rgba(246,243,233,0.65); cursor:pointer;}
+  .chip.active{ background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:600;}
+
+  .fab{ position:fixed; right:18px; bottom:26px; z-index:30; width:56px; height:56px; border-radius:50%; border:none;
+    background: var(--gold); color:var(--ink); font-size:26px; font-weight:700;
+    display:none; align-items:center; justify-content:center; box-shadow: 0 8px 20px rgba(0,0,0,0.35); cursor:pointer; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(9,18,14,0.72); z-index:40; display:none;
+    align-items:flex-end; justify-content:center; backdrop-filter: blur(2px); }
+  .overlay.active{ display:flex; }
+  .sheet{ background: var(--pitch-dark); border:1px solid var(--line); border-top-left-radius:20px; border-top-right-radius:20px;
+    width:100%; max-width:640px; max-height:88vh; overflow-y:auto; padding: 18px 18px 28px; animation: slideup .25s ease; }
+  @keyframes slideup{ from{ transform:translateY(30px); opacity:0;} to{transform:none; opacity:1;} }
+  .sheet h3{ margin:0 0 14px; font-size:17px; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:12.5px; color:rgba(246,243,233,0.6); margin-bottom:5px;}
+  .field input, .field select{ width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--line);
+    border-radius:10px; padding:11px 12px; color:var(--chalk); font-size:14.5px; font-family:'Sarabun'; }
+  .field p.hint{ font-size:11.5px; color:rgba(246,243,233,0.45); margin:6px 2px 0; line-height:1.5;}
+  .seg{ display:flex; gap:8px; }
+  .seg button{ flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:transparent;
+    color:rgba(246,243,233,0.65); font-weight:600; cursor:pointer; }
+  .seg button.income.on{ background:rgba(143,212,168,0.15); color:#8FD4A8; border-color:#8FD4A8; }
+  .seg button.expense.on{ background:rgba(224,128,100,0.15); color:#E08064; border-color:#E08064; }
+  .btn-row{ display:flex; gap:10px; margin-top:16px; }
+  .btn{ flex:1; padding:13px; border-radius:10px; border:none; font-weight:700; font-size:14.5px; cursor:pointer;}
+  .btn.primary{ background:var(--gold); color:var(--ink); }
+  .btn.ghost{ background:rgba(255,255,255,0.06); color:var(--chalk); }
+  .btn.danger{ background:rgba(224,128,100,0.15); color:#E08064; }
+  .btn:disabled{ opacity:0.5; }
+
+  .empty{ text-align:center; padding: 40px 12px; color:rgba(246,243,233,0.45); font-size:13.5px; }
+  .toast{ position:fixed; top:14px; left:50%; transform:translateX(-50%) translateY(-60px);
+    background: var(--gold); color:var(--ink); padding:10px 18px; border-radius:999px;
+    font-size:13px; font-weight:600; z-index:60; transition: transform .25s ease; text-align:center; max-width:88%; }
+  .toast.show{ transform:translateX(-50%) translateY(0); }
+  .toast.err{ background:#E08064; }
+  .view-tag{ font-size:11px; padding:3px 10px; border-radius:999px; border:1px solid var(--line); color:rgba(246,243,233,0.5); }
+  .edit-hint{ text-align:center; font-size:12px; color:rgba(246,243,233,0.4); margin-top:4px; }
+  .setup-banner{ margin:16px; padding:16px; border:1px dashed var(--brick); border-radius:var(--radius); font-size:13px; line-height:1.6; color:rgba(246,243,233,0.75); }
+  .setup-banner code{ background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:5px; font-size:12px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="crest">บส</div>
+    <div>
+      <div class="brand-name">บ้านสร้าง FC</div>
+      <div class="brand-sub" id="brandSub">ระบบจัดการทีม · ออนไลน์</div>
+    </div>
+  </div>
+  <button class="auth-btn" id="authBtn">เข้าสู่ระบบแอดมิน</button>
+</header>
+
+<div id="setupBanner" class="setup-banner" style="display:none;">
+  ยังไม่ได้เชื่อมต่อ Google Sheets — เปิดไฟล์ <code>index.html</code> แล้วแก้ค่า <code>SCRIPT_URL</code>
+  ที่ต้นไฟล์ script ให้เป็นลิงก์ Web App ที่ได้จาก Google Apps Script (ดูขั้นตอนใน README.md)
+</div>
+
+<div class="scoreboard">
+  <div class="sb-cell"><div class="sb-label">นักเตะ</div><div class="sb-value" id="sbPlayers">0</div></div>
+  <div class="sb-div"></div>
+  <div class="sb-cell"><div class="sb-label">คงเหลือ</div><div class="sb-value gold" id="sbBalance">฿0</div></div>
+  <div class="sb-div"></div>
+  <div class="sb-cell"><div class="sb-label">เดือนนี้</div><div class="sb-value brick" id="sbMonth">฿0</div></div>
+</div>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="dashboard">ภาพรวม</button>
+  <button class="tab-btn" data-tab="players">นักเตะ</button>
+  <button class="tab-btn" data-tab="finance">การเงิน</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-dashboard">
+    <div class="grid2">
+      <div class="stat income"><div class="num" id="statIncome">฿0</div><div class="lbl">รายรับเดือนนี้</div></div>
+      <div class="stat expense"><div class="num" id="statExpense">฿0</div><div class="lbl">รายจ่ายเดือนนี้</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">รายรับ-รายจ่าย 6 เดือนล่าสุด</div>
+      <div class="chart" id="chart"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">รายการล่าสุด <span class="count" id="recentCount"></span></div>
+      <div id="recentTx"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-players">
+    <div class="section-title">รายชื่อนักเตะ <span class="count" id="playerCount"></span></div>
+    <div class="card" style="padding:4px 10px;"><div id="playerList"></div></div>
+    <div class="edit-hint" id="playerHint" style="display:none;">แตะรายชื่อเพื่อแก้ไข</div>
+  </section>
+
+  <section class="view" id="view-finance">
+    <div class="section-title">รายรับ-รายจ่าย <span class="count" id="txCount"></span></div>
+    <div class="filters" id="txFilters">
+      <button class="chip active" data-f="all">ทั้งหมด</button>
+      <button class="chip" data-f="income">รายรับ</button>
+      <button class="chip" data-f="expense">รายจ่าย</button>
+    </div>
+    <div class="card" style="padding:4px 10px;"><div id="txList"></div></div>
+  </section>
+</main>
+
+<button class="fab" id="fabBtn">+</button>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginOverlay">
+  <div class="sheet">
+    <h3>เข้าสู่ระบบแอดมิน</h3>
+    <div class="field">
+      <label>รหัสผ่านแอดมิน</label>
+      <input id="loginPw" type="password" placeholder="กรอกรหัสผ่าน">
+      <p class="hint">ตั้ง/เปลี่ยนรหัสผ่านได้จากเมนู "⚽ บ้านสร้าง FC" ในไฟล์ Google Sheets</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="loginCancel">ยกเลิก</button>
+      <button class="btn primary" id="loginSubmit">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER MODAL -->
+<div class="overlay" id="playerOverlay">
+  <div class="sheet">
+    <h3 id="playerModalTitle">เพิ่มนักเตะ</h3>
+    <input type="hidden" id="pId">
+    <div class="field"><label>ชื่อ-นามสกุล</label><input id="pName" placeholder="เช่น สมชาย ใจดี"></div>
+    <div class="field"><label>เบอร์เสื้อ</label><input id="pNumber" type="number" placeholder="เช่น 9"></div>
+    <div class="field"><label>ตำแหน่ง</label>
+      <select id="pPosition">
+        <option value="ผู้รักษาประตู">ผู้รักษาประตู (GK)</option>
+        <option value="กองหลัง">กองหลัง (DF)</option>
+        <option value="กองกลาง">กองกลาง (MF)</option>
+        <option value="กองหน้า">กองหน้า (FW)</option>
+      </select>
+    </div>
+    <div class="field"><label>อายุ</label><input id="pAge" type="number" placeholder="เช่น 24"></div>
+    <div class="field"><label>เบอร์โทร</label><input id="pPhone" placeholder="0812345678"></div>
+    <div class="field"><label>สถานะ</label>
+      <select id="pStatus">
+        <option value="active">พร้อมลงเล่น</option>
+        <option value="injured">บาดเจ็บ</option>
+        <option value="leave">ลา/ไม่พร้อม</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="playerCancel">ยกเลิก</button>
+      <button class="btn danger" id="playerDelete" style="display:none;">ลบ</button>
+      <button class="btn primary" id="playerSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- TX MODAL -->
+<div class="overlay" id="txOverlay">
+  <div class="sheet">
+    <h3 id="txModalTitle">เพิ่มรายการ</h3>
+    <input type="hidden" id="tId">
+    <div class="field">
+      <label>ประเภท</label>
+      <div class="seg">
+        <button type="button" class="income" id="segIncome">รายรับ</button>
+        <button type="button" class="expense" id="segExpense">รายจ่าย</button>
+      </div>
+    </div>
+    <div class="field"><label>หมวดหมู่</label><select id="tCategory"></select></div>
+    <div class="field"><label>จำนวนเงิน (บาท)</label><input id="tAmount" type="number" placeholder="0"></div>
+    <div class="field"><label>วันที่</label><input id="tDate" type="date"></div>
+    <div class="field"><label>หมายเหตุ</label><input id="tNote" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="txCancel">ยกเลิก</button>
+      <button class="btn danger" id="txDelete" style="display:none;">ลบ</button>
+      <button class="btn primary" id="txSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ============================================================
+  // ตั้งค่า: วางลิงก์ Web App ของ Google Apps Script ตรงนี้
+  // (Deploy > New deployment > Web app > Who has access: Anyone)
+  // ============================================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFk9S8KXdGckGbri42TbwioFZQoOb7GMTwLNJg4JHlBUwEEF9oJzlHmulDgC8AHjExtg/exec";
+
+  const CATS = {
+    income: ['ค่าสมาชิก','สปอนเซอร์','เงินรางวัล','อื่นๆ'],
+    expense: ['ค่าสนาม','ค่าอุปกรณ์','ค่าเดินทาง','ค่าเสื้อ/ชุดแข่ง','ค่าจัดการอื่นๆ']
+  };
+  let players = [];
+  let txs = [];
+  let txFilter = 'all';
+  let txType = 'income';
+  let isAdmin = false;
+
+  const $ = id => document.getElementById(id);
+  const fmt = n => '฿' + Number(n||0).toLocaleString('th-TH', {maximumFractionDigits:0});
+  const toast = (msg, isErr) => {
+    const t = $('toast'); t.textContent = msg; t.classList.toggle('err', !!isErr);
+    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
+  };
+  const configured = () => SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1;
+
+  // ---------- API ----------
+  async function apiGet(){
+    const res = await fetch(SCRIPT_URL + '?action=getData');
+    return res.json();
+  }
+  // ส่งแบบ text/plain เพื่อเลี่ยงปัญหา CORS preflight กับ Apps Script
+  async function apiPost(payload){
+    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    return res.json();
+  }
+
+  async function loadAll(){
+    if(!configured()){
+      $('setupBanner').style.display = 'block';
+      return;
+    }
+    try{
+      const data = await apiGet();
+      players = (data.players || []).map(normalizePlayer);
+      txs = (data.transactions || []).map(normalizeTx);
+      render();
+    }catch(e){
+      toast('โหลดข้อมูลไม่สำเร็จ ตรวจสอบการเชื่อมต่อ', true);
+    }
+  }
+  function normalizePlayer(p){
+    return { id: String(p.id), name: p.name||'', number: p.number===''? null : p.number,
+      position: p.position||'', age: p.age===''? null : p.age, phone: p.phone||'', status: p.status||'active' };
+  }
+  function normalizeTx(t){
+    return { id: String(t.id), type: t.type, category: t.category||'',
+      amount: Number(t.amount)||0, date: t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10), note: t.note||'' };
+  }
+  function isoDate(d){ return d.toISOString().slice(0,10); }
+
+  // ---------- auth ----------
+  function setAdminUI(){
+    $('authBtn').textContent = isAdmin ? 'ออกจากระบบแอดมิน' : 'เข้าสู่ระบบแอดมิน';
+    $('authBtn').classList.toggle('on', isAdmin);
+    $('brandSub').textContent = isAdmin ? 'ระบบจัดการทีม · โหมดแอดมิน' : 'ระบบจัดการทีม · ดูข้อมูลอย่างเดียว';
+    $('playerHint').style.display = isAdmin ? 'block' : 'none';
+    fabMode();
+    render();
+  }
+  $('authBtn').addEventListener('click', ()=>{
+    if(isAdmin){
+      isAdmin = false; sessionStorage.removeItem('bsfc_admin_pw');
+      toast('ออกจากระบบแอดมินแล้ว'); setAdminUI();
+    } else {
+      $('loginPw').value = '';
+      $('loginOverlay').classList.add('active');
+    }
+  });
+  $('loginCancel').addEventListener('click', ()=> $('loginOverlay').classList.remove('active'));
+  $('loginSubmit').addEventListener('click', async ()=>{
+    const pw = $('loginPw').value;
+    if(!pw){ toast('กรุณากรอกรหัสผ่าน', true); return; }
+    if(!configured()){ toast('ยังไม่ได้เชื่อมต่อ Google Sheets', true); return; }
+    try{
+      const res = await apiPost({ action:'login', password: pw });
+      if(res.ok){
+        isAdmin = true; sessionStorage.setItem('bsfc_admin_pw', pw);
+        $('loginOverlay').classList.remove('active');
+        toast('เข้าสู่ระบบแอดมินสำเร็จ');
+        setAdminUI();
+      } else {
+        toast('รหัสผ่านไม่ถูกต้อง', true);
+      }
+    }catch(e){ toast('เชื่อมต่อไม่สำเร็จ', true); }
+  });
+  function adminPw(){ return sessionStorage.getItem('bsfc_admin_pw') || ''; }
+
+  // ---------- tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      $('view-' + btn.dataset.tab).classList.add('active');
+      fabMode();
+    });
+  });
+  function activeTab(){ return document.querySelector('.tab-btn.active').dataset.tab; }
+  function fabMode(){
+    $('fabBtn').style.display = (isAdmin && activeTab() !== 'dashboard') ? 'flex' : 'none';
+  }
+
+  // ---------- render ----------
+  function render(){
+    renderScoreboard(); renderDashboard(); renderPlayers(); renderTx(); fabMode();
+  }
+  function monthKey(d){ return d.slice(0,7); }
+  function thisMonthKey(){ return new Date().toISOString().slice(0,7); }
+
+  function renderScoreboard(){
+    $('sbPlayers').textContent = players.length;
+    const balance = txs.reduce((s,t)=> s + (t.type==='income'? Number(t.amount): -Number(t.amount)), 0);
+    $('sbBalance').textContent = fmt(balance);
+    const mk = thisMonthKey();
+    const monthNet = txs.filter(t=>monthKey(t.date)===mk).reduce((s,t)=> s + (t.type==='income'? Number(t.amount): -Number(t.amount)), 0);
+    $('sbMonth').textContent = (monthNet>=0?'+':'') + fmt(monthNet);
+  }
+
+  function renderDashboard(){
+    const mk = thisMonthKey();
+    const inc = txs.filter(t=>t.type==='income' && monthKey(t.date)===mk).reduce((s,t)=>s+Number(t.amount),0);
+    const exp = txs.filter(t=>t.type==='expense' && monthKey(t.date)===mk).reduce((s,t)=>s+Number(t.amount),0);
+    $('statIncome').textContent = fmt(inc);
+    $('statExpense').textContent = fmt(exp);
+
+    const months = [];
+    const now = new Date();
+    for(let i=5;i>=0;i--){ const d = new Date(now.getFullYear(), now.getMonth()-i, 1); months.push(d.toISOString().slice(0,7)); }
+    const maxVal = Math.max(1, ...months.map(m=>{
+      const i = txs.filter(t=>t.type==='income'&&monthKey(t.date)===m).reduce((s,t)=>s+Number(t.amount),0);
+      const e = txs.filter(t=>t.type==='expense'&&monthKey(t.date)===m).reduce((s,t)=>s+Number(t.amount),0);
+      return Math.max(i,e);
+    }));
+    const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    $('chart').innerHTML = months.map(m=>{
+      const i = txs.filter(t=>t.type==='income'&&monthKey(t.date)===m).reduce((s,t)=>s+Number(t.amount),0);
+      const e = txs.filter(t=>t.type==='expense'&&monthKey(t.date)===m).reduce((s,t)=>s+Number(t.amount),0);
+      const hi = Math.max(2, Math.round((i/maxVal)*88));
+      const he = Math.max(2, Math.round((e/maxVal)*88));
+      const label = thMonths[parseInt(m.slice(5,7),10)-1];
+      return `<div class="bargroup"><div class="bars">
+        <div class="bar" style="height:${hi}px" title="รายรับ ${fmt(i)}"></div>
+        <div class="bar exp" style="height:${he}px" title="รายจ่าย ${fmt(e)}"></div>
+      </div><div class="m-lbl">${label}</div></div>`;
+    }).join('');
+
+    const recent = [...txs].sort((a,b)=> b.date.localeCompare(a.date)).slice(0,5);
+    $('recentCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
+    $('recentTx').innerHTML = recent.length ? recent.map(txRowHTML).join('') :
+      `<div class="empty">ยังไม่มีรายการรายรับ-รายจ่าย</div>`;
+    attachTxHandlers($('recentTx'));
+  }
+
+  function renderPlayers(){
+    $('playerCount').textContent = players.length ? `(${players.length} คน)` : '';
+    const sorted = [...players].sort((a,b)=> (a.number||999)-(b.number||999));
+    $('playerList').innerHTML = sorted.length ? sorted.map(p=>{
+      const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
+      const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
+      return `<div class="player-row" data-id="${p.id}" style="cursor:${isAdmin?'pointer':'default'}">
+        <div class="jersey">${p.number ?? '-'}</div>
+        <div class="p-info">
+          <div class="p-name">${escapeHTML(p.name)}</div>
+          <div class="p-meta">${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี</div>
+        </div>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>`;
+    }).join('') : `<div class="empty">ยังไม่มีนักเตะในทีม</div>`;
+    if(isAdmin){
+      document.querySelectorAll('#playerList .player-row').forEach(row=>{
+        row.addEventListener('click', ()=> openPlayerModal(row.dataset.id));
+      });
+    }
+  }
+
+  function txRowHTML(t){
+    const cat = t.category || (t.type==='income'?'รายรับ':'รายจ่าย');
+    return `<div class="tx-row" data-id="${t.id}" style="cursor:${isAdmin?'pointer':'default'}">
+      <div class="tx-dot ${t.type}"></div>
+      <div class="tx-info">
+        <div class="tx-cat">${escapeHTML(cat)}</div>
+        <div class="tx-meta">${t.date}${t.note? ' · '+escapeHTML(t.note):''}</div>
+      </div>
+      <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
+    </div>`;
+  }
+  function attachTxHandlers(container){
+    if(!isAdmin) return;
+    container.querySelectorAll('.tx-row').forEach(row=>{
+      row.addEventListener('click', ()=> openTxModal(row.dataset.id));
+    });
+  }
+
+  function renderTx(){
+    const filtered = txFilter==='all' ? txs : txs.filter(t=>t.type===txFilter);
+    const sorted = [...filtered].sort((a,b)=> b.date.localeCompare(a.date));
+    $('txCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
+    $('txList').innerHTML = sorted.length ? sorted.map(txRowHTML).join('') : `<div class="empty">ไม่พบรายการ</div>`;
+    attachTxHandlers($('txList'));
+  }
+  document.querySelectorAll('#txFilters .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#txFilters .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); txFilter = chip.dataset.f; renderTx();
+    });
+  });
+  function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---------- player modal ----------
+  function openPlayerModal(id){
+    if(!isAdmin) return;
+    const p = players.find(x=>x.id===id);
+    $('playerModalTitle').textContent = p ? 'แก้ไขนักเตะ' : 'เพิ่มนักเตะ';
+    $('pId').value = p ? p.id : '';
+    $('pName').value = p ? p.name : '';
+    $('pNumber').value = p ? p.number : '';
+    $('pPosition').value = p ? p.position : 'กองกลาง';
+    $('pAge').value = p ? p.age : '';
+    $('pPhone').value = p ? p.phone : '';
+    $('pStatus').value = p ? p.status : 'active';
+    $('playerDelete').style.display = p ? 'block' : 'none';
+    $('playerOverlay').classList.add('active');
+  }
+  $('fabBtn').addEventListener('click', ()=>{
+    if(!isAdmin) return;
+    if(activeTab()==='players') openPlayerModal(null);
+    else if(activeTab()==='finance') openTxModal(null);
+  });
+  $('playerCancel').addEventListener('click', ()=> $('playerOverlay').classList.remove('active'));
+  $('playerOverlay').addEventListener('click', e=>{ if(e.target.id==='playerOverlay') $('playerOverlay').classList.remove('active'); });
+
+  $('playerSave').addEventListener('click', async ()=>{
+    const name = $('pName').value.trim();
+    if(!name){ toast('กรุณากรอกชื่อนักเตะ', true); return; }
+    const id = $('pId').value;
+    const data = {
+      id: id || undefined, name,
+      number: $('pNumber').value ? parseInt($('pNumber').value,10) : '',
+      position: $('pPosition').value,
+      age: $('pAge').value ? parseInt($('pAge').value,10) : '',
+      phone: $('pPhone').value.trim(),
+      status: $('pStatus').value
+    };
+    $('playerSave').disabled = true;
+    try{
+      const res = await apiPost({ action: id ? 'updatePlayer' : 'addPlayer', password: adminPw(), data });
+      if(res.error){ toast(res.error==='unauthorized' ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' : res.error, true); }
+      else { toast('บันทึกข้อมูลนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+    $('playerSave').disabled = false;
+  });
+  $('playerDelete').addEventListener('click', async ()=>{
+    const id = $('pId').value;
+    if(!confirm('ลบนักเตะคนนี้ใช่หรือไม่?')) return;
+    try{
+      const res = await apiPost({ action:'deletePlayer', password: adminPw(), data:{ id } });
+      if(res.error){ toast(res.error, true); }
+      else { toast('ลบนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('ลบไม่สำเร็จ', true); }
+  });
+
+  // ---------- tx modal ----------
+  function fillCategoryOptions(){ $('tCategory').innerHTML = CATS[txType].map(c=>`<option value="${c}">${c}</option>`).join(''); }
+  function setTxType(type){
+    txType = type;
+    $('segIncome').classList.toggle('on', type==='income');
+    $('segExpense').classList.toggle('on', type==='expense');
+    fillCategoryOptions();
+  }
+  $('segIncome').addEventListener('click', ()=> setTxType('income'));
+  $('segExpense').addEventListener('click', ()=> setTxType('expense'));
+
+  function openTxModal(id){
+    if(!isAdmin) return;
+    const t = txs.find(x=>x.id===id);
+    $('txModalTitle').textContent = t ? 'แก้ไขรายการ' : 'เพิ่มรายการ';
+    $('tId').value = t ? t.id : '';
+    setTxType(t ? t.type : 'income');
+    $('tCategory').value = t ? t.category : CATS[txType][0];
+    $('tAmount').value = t ? t.amount : '';
+    $('tDate').value = t ? t.date : new Date().toISOString().slice(0,10);
+    $('tNote').value = t ? (t.note||'') : '';
+    $('txDelete').style.display = t ? 'block' : 'none';
+    $('txOverlay').classList.add('active');
+  }
+  $('txCancel').addEventListener('click', ()=> $('txOverlay').classList.remove('active'));
+  $('txOverlay').addEventListener('click', e=>{ if(e.target.id==='txOverlay') $('txOverlay').classList.remove('active'); });
+
+  $('txSave').addEventListener('click', async ()=>{
+    const amount = parseFloat($('tAmount').value);
+    if(!amount || amount<=0){ toast('กรุณากรอกจำนวนเงินให้ถูกต้อง', true); return; }
+    if(!$('tDate').value){ toast('กรุณาเลือกวันที่', true); return; }
+    const id = $('tId').value;
+    const data = { id: id || undefined, type: txType, category: $('tCategory').value, amount, date: $('tDate').value, note: $('tNote').value.trim() };
+    $('txSave').disabled = true;
+    try{
+      const res = await apiPost({ action: id ? 'updateTx' : 'addTx', password: adminPw(), data });
+      if(res.error){ toast(res.error==='unauthorized' ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' : res.error, true); }
+      else { toast('บันทึกรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+    $('txSave').disabled = false;
+  });
+  $('txDelete').addEventListener('click', async ()=>{
+    const id = $('tId').value;
+    if(!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
+    try{
+      const res = await apiPost({ action:'deleteTx', password: adminPw(), data:{ id } });
+      if(res.error){ toast(res.error, true); }
+      else { toast('ลบรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('ลบไม่สำเร็จ', true); }
+  });
+
+  // ---------- init ----------
+  fillCategoryOptions();
+  const savedPw = sessionStorage.getItem('bsfc_admin_pw');
+  if(savedPw){ isAdmin = true; } // ยืนยันสิทธิ์จริงเมื่อมีการบันทึกครั้งถัดไป (server ตรวจรหัสผ่านทุกครั้ง)
+  setAdminUI();
+  loadAll();
+})();
+</script>
+</body>
+</html>
