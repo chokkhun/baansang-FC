@@ -72,16 +72,20 @@
   section.view.active{ display:block; }
   @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
 
-  .section-title{ font-size:15px; font-weight:700; margin: 4px 0 12px; display:flex; align-items:center; justify-content:space-between;}
+  .section-title{ font-size:15px; font-weight:700; margin: 4px 0 12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;}
   .section-title span.count{ font-weight:400; font-size:12.5px; color:rgba(246,243,233,0.5);}
   .section-title .link-btn{ font-size:12px; font-weight:600; color:var(--gold); background:transparent; border:none; cursor:pointer; padding:0; }
 
   .card{ background: var(--card); border:1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
+  .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
   .stat{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px;}
   .stat .num{ font-family:'Prompt'; font-weight:700; font-size:21px; }
   .stat .lbl{ font-size:11.5px; color:rgba(246,243,233,0.55); margin-top:3px;}
   .stat.income .num{ color:#8FD4A8; } .stat.expense .num{ color:#E08064; }
+  .mini-stat{ text-align:center; padding:10px 6px; border-radius:10px; background:rgba(255,255,255,0.03); border:1px solid var(--line); }
+  .mini-stat .num{ font-family:'Prompt'; font-weight:700; font-size:15.5px; color:var(--gold); }
+  .mini-stat .lbl{ font-size:10.5px; color:rgba(246,243,233,0.5); margin-top:3px; }
 
   .chart{ display:flex; align-items:flex-end; gap:8px; height:120px; padding:10px 4px 0; }
   .chart .bargroup{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
@@ -90,12 +94,13 @@
   .chart .bar.exp{ background:var(--brick); }
   .chart .m-lbl{ font-size:10px; color:rgba(246,243,233,0.5); margin-top:6px;}
 
-  .player-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); }
-  .player-row:last-child{ border-bottom:none; }
+  .player-row, .staff-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); }
+  .player-row:last-child, .staff-row:last-child{ border-bottom:none; }
   .jersey{ width:42px; height:42px; border-radius:10px; background:var(--pitch-mid);
     display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
     font-family:'Prompt'; font-weight:800; font-size:15px; color:var(--chalk); border: 1px solid var(--line); }
   .jersey img{ width:100%; height:100%; object-fit:cover; }
+  .jersey.avatar{ border-radius:50%; font-size:18px; }
   .p-info{ flex:1; min-width:0; }
   .p-name{ font-weight:600; font-size:14.5px; }
   .p-meta{ font-size:12px; color:rgba(246,243,233,0.55); margin-top:2px; }
@@ -103,6 +108,7 @@
   .badge.active{ background:rgba(143,212,168,0.15); color:#8FD4A8; }
   .badge.injured{ background:rgba(224,128,100,0.15); color:#E08064; }
   .badge.leave{ background:rgba(246,243,233,0.12); color:rgba(246,243,233,0.6); }
+  .badge.squad{ background:rgba(227,178,60,0.15); color:var(--gold); flex-shrink:0; }
 
   .tx-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); }
   .tx-row:last-child{ border-bottom:none; }
@@ -111,10 +117,12 @@
   .tx-info{ flex:1; min-width:0; }
   .tx-cat{ font-weight:600; font-size:14px; }
   .tx-meta{ font-size:11.5px; color:rgba(246,243,233,0.5); margin-top:2px; }
-  .tx-amt{ font-family:'Prompt'; font-weight:700; font-size:14.5px; }
+  .tx-amt{ font-family:'Prompt'; font-weight:700; font-size:14.5px; text-align:right; }
   .tx-amt.income{ color:#8FD4A8; } .tx-amt.expense{ color:#E08064; }
+  .tx-squad{ font-size:10px; color:var(--gold); margin-top:2px; }
 
-  .filters{ display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;}
+  .filters{ display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; padding-bottom:2px;}
+  .filters.sub{ margin-bottom:12px; }
   .chip{ flex-shrink:0; font-size:12.5px; padding:6px 12px; border-radius:999px; border:1px solid var(--line);
     background:transparent; color:rgba(246,243,233,0.65); cursor:pointer;}
   .chip.active{ background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:600;}
@@ -170,7 +178,6 @@
   .setup-banner{ margin:16px; padding:16px; border:1px dashed var(--brick); border-radius:var(--radius); font-size:13px; line-height:1.6; color:rgba(246,243,233,0.75); }
   .setup-banner code{ background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:5px; font-size:12px; }
 
-  /* History tab */
   .info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
   .info-item .lbl{ font-size:11px; color:rgba(246,243,233,0.5); margin-bottom:4px; }
   .info-item .val{ font-family:'Prompt'; font-weight:600; font-size:14.5px; }
@@ -178,7 +185,6 @@
   .icon-edit{ width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:transparent;
     color:rgba(246,243,233,0.7); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
 
-  /* Hall of fame */
   .trophy-row{ display:flex; gap:12px; padding:13px 4px; border-bottom:1px solid var(--line); }
   .trophy-row:last-child{ border-bottom:none; }
   .trophy-icon{ font-size:20px; flex-shrink:0; width:38px; height:38px; border-radius:10px; background:rgba(227,178,60,0.12);
@@ -218,6 +224,7 @@
 <nav class="tabs">
   <button class="tab-btn active" data-tab="dashboard">ภาพรวม</button>
   <button class="tab-btn" data-tab="players">นักเตะ</button>
+  <button class="tab-btn" data-tab="staff">ทีมงาน</button>
   <button class="tab-btn" data-tab="finance">การเงิน</button>
   <button class="tab-btn" data-tab="history">ประวัติทีม</button>
   <button class="tab-btn" data-tab="trophies">ทำเนียบแชมป์</button>
@@ -228,6 +235,14 @@
     <div class="grid2">
       <div class="stat income"><div class="num" id="statIncome">฿0</div><div class="lbl">รายรับเดือนนี้</div></div>
       <div class="stat expense"><div class="num" id="statExpense">฿0</div><div class="lbl">รายจ่ายเดือนนี้</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px;">ยอดคงเหลือแยกทีม</div>
+      <div class="grid3">
+        <div class="mini-stat"><div class="num" id="balU12">฿0</div><div class="lbl">U12</div></div>
+        <div class="mini-stat"><div class="num" id="balU14">฿0</div><div class="lbl">U14</div></div>
+        <div class="mini-stat"><div class="num" id="balGeneral">฿0</div><div class="lbl">ส่วนกลาง</div></div>
+      </div>
     </div>
     <div class="card">
       <div class="section-title">รายรับ-รายจ่าย 6 เดือนล่าสุด</div>
@@ -241,8 +256,19 @@
 
   <section class="view" id="view-players">
     <div class="section-title">รายชื่อนักเตะ <span class="count" id="playerCount"></span></div>
+    <div class="filters" id="playerSquadFilters">
+      <button class="chip active" data-sq="all">ทั้งหมด</button>
+      <button class="chip" data-sq="U12">U12</button>
+      <button class="chip" data-sq="U14">U14</button>
+    </div>
     <div class="card" style="padding:4px 10px;"><div id="playerList"></div></div>
     <div class="edit-hint" id="playerHint" style="display:none;">แตะรายชื่อเพื่อแก้ไข</div>
+  </section>
+
+  <section class="view" id="view-staff">
+    <div class="section-title">ทีมงาน <span class="count" id="staffCount"></span></div>
+    <div class="card" style="padding:4px 10px;"><div id="staffList"></div></div>
+    <div class="edit-hint" id="staffHint" style="display:none;">แตะรายชื่อเพื่อแก้ไข</div>
   </section>
 
   <section class="view" id="view-finance">
@@ -254,6 +280,12 @@
       <button class="chip active" data-f="all">ทั้งหมด</button>
       <button class="chip" data-f="income">รายรับ</button>
       <button class="chip" data-f="expense">รายจ่าย</button>
+    </div>
+    <div class="filters sub" id="txSquadFilters">
+      <button class="chip active" data-sq="all">ทุกทีม</button>
+      <button class="chip" data-sq="U12">U12</button>
+      <button class="chip" data-sq="U14">U14</button>
+      <button class="chip" data-sq="ส่วนกลาง">ส่วนกลาง</button>
     </div>
     <div class="card" style="padding:4px 10px;"><div id="txList"></div></div>
   </section>
@@ -316,6 +348,9 @@
         <button class="remove-btn" id="pPhotoRemove">ลบรูป</button>
       </div>
     </div>
+    <div class="field"><label>ทีม</label>
+      <select id="pSquad"><option value="U12">U12</option><option value="U14">U14</option></select>
+    </div>
     <div class="field"><label>ชื่อ-นามสกุล</label><input id="pName" placeholder="เช่น สมชาย ใจดี"></div>
     <div class="field"><label>เบอร์เสื้อ</label><input id="pNumber" type="number" placeholder="เช่น 9"></div>
     <div class="field"><label>ตำแหน่ง</label>
@@ -326,8 +361,8 @@
         <option value="กองหน้า">กองหน้า (FW)</option>
       </select>
     </div>
-    <div class="field"><label>อายุ</label><input id="pAge" type="number" placeholder="เช่น 24"></div>
-    <div class="field"><label>เบอร์โทร</label><input id="pPhone" placeholder="0812345678"></div>
+    <div class="field"><label>อายุ</label><input id="pAge" type="number" placeholder="เช่น 12"></div>
+    <div class="field"><label>เบอร์โทร (ผู้ปกครอง)</label><input id="pPhone" placeholder="0812345678"></div>
     <div class="field"><label>สถานะ</label>
       <select id="pStatus">
         <option value="active">พร้อมลงเล่น</option>
@@ -343,6 +378,45 @@
   </div>
 </div>
 
+<!-- STAFF MODAL -->
+<div class="overlay" id="staffOverlay">
+  <div class="sheet">
+    <h3 id="staffModalTitle">เพิ่มทีมงาน</h3>
+    <input type="hidden" id="sId">
+    <input type="hidden" id="sPhotoBase64">
+    <div class="photo-picker">
+      <div class="photo-preview" id="sPhotoPreview">👤</div>
+      <div class="photo-actions">
+        <label class="upload-btn">เลือกรูป<input type="file" id="sPhotoFile" accept="image/*"></label>
+        <button class="remove-btn" id="sPhotoRemove">ลบรูป</button>
+      </div>
+    </div>
+    <div class="field"><label>ชื่อ-นามสกุล</label><input id="sName" placeholder="เช่น สมหญิง รักทีม"></div>
+    <div class="field"><label>ตำแหน่ง</label>
+      <select id="sRole">
+        <option value="ผู้จัดการทีม">ผู้จัดการทีม</option>
+        <option value="หัวหน้าผู้ฝึกสอน">หัวหน้าผู้ฝึกสอน</option>
+        <option value="ผู้ช่วยผู้ฝึกสอน">ผู้ช่วยผู้ฝึกสอน</option>
+        <option value="โค้ชผู้รักษาประตู">โค้ชผู้รักษาประตู</option>
+        <option value="เจ้าหน้าที่ทีม/สตาฟฟ์">เจ้าหน้าที่ทีม/สตาฟฟ์</option>
+      </select>
+    </div>
+    <div class="field"><label>ดูแลทีม</label>
+      <select id="sSquad">
+        <option value="ทั้งสโมสร">ทั้งสโมสร</option>
+        <option value="U12">U12</option>
+        <option value="U14">U14</option>
+      </select>
+    </div>
+    <div class="field"><label>เบอร์โทร</label><input id="sPhone" placeholder="0812345678"></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="staffCancel">ยกเลิก</button>
+      <button class="btn danger" id="staffDelete" style="display:none;">ลบ</button>
+      <button class="btn primary" id="staffSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- TX MODAL -->
 <div class="overlay" id="txOverlay">
   <div class="sheet">
@@ -354,6 +428,13 @@
         <button type="button" class="income" id="segIncome">รายรับ</button>
         <button type="button" class="expense" id="segExpense">รายจ่าย</button>
       </div>
+    </div>
+    <div class="field"><label>ทีม</label>
+      <select id="tSquad">
+        <option value="ส่วนกลาง">ส่วนกลาง (ทั้งสโมสร)</option>
+        <option value="U12">U12</option>
+        <option value="U14">U14</option>
+      </select>
     </div>
     <div class="field"><label>หมวดหมู่</label><select id="tCategory"></select></div>
     <div class="field"><label>จำนวนเงิน (บาท)</label><input id="tAmount" type="number" placeholder="0"></div>
@@ -433,10 +514,11 @@
   // ============================================================
   // ตั้งค่า: ลิงก์ Web App ของ Google Apps Script
   // ============================================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFk9S8KXdGckGbri42TbwioFZQoOb7GMTwLNJg4JHlBUwEEF9oJzlHmulDgC8AHjExtg/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxH3AQMfqCIgTJ_rVJzi7ibaelfLFMA2ju7y39Nwh8SENbZaIwezk3FeT3H2T0s9CeDUw/exec";
 
-  let players = [], txs = [], categories = [], teamInfo = {}, achievements = [];
-  let txFilter = 'all', txType = 'income', newCatType = 'income';
+  let players = [], staff = [], txs = [], categories = [], teamInfo = {}, achievements = [];
+  let txFilter = 'all', txSquadFilter = 'all', playerSquadFilter = 'all';
+  let txType = 'income', newCatType = 'income';
   let isAdmin = false;
 
   const $ = id => document.getElementById(id);
@@ -460,6 +542,7 @@
     try{
       const data = await apiGet();
       players = (data.players || []).map(normalizePlayer);
+      staff = (data.staff || []).map(normalizeStaff);
       txs = (data.transactions || []).map(normalizeTx);
       categories = data.categories || [];
       teamInfo = data.teamInfo || {};
@@ -470,11 +553,16 @@
   function normalizePlayer(p){
     return { id: String(p.id), name: p.name||'', number: p.number===''? null : p.number,
       position: p.position||'', age: p.age===''? null : p.age, phone: p.phone||'', status: p.status||'active',
-      photoId: p.photoId||'' };
+      squad: p.squad || 'U12', photoId: p.photoId||'' };
+  }
+  function normalizeStaff(s){
+    return { id: String(s.id), name: s.name||'', role: s.role||'', squad: s.squad||'ทั้งสโมสร',
+      phone: s.phone||'', photoId: s.photoId||'' };
   }
   function normalizeTx(t){
     return { id: String(t.id), type: t.type, category: t.category||'',
-      amount: Number(t.amount)||0, date: t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10), note: t.note||'' };
+      amount: Number(t.amount)||0, date: t.date instanceof Date ? isoDate(t.date) : String(t.date).slice(0,10),
+      note: t.note||'', squad: t.squad || 'ส่วนกลาง' };
   }
   function normalizeAchievement(a){
     return { id: String(a.id), year: String(a.year||''), title: a.title||'', detail: a.detail||'' };
@@ -487,6 +575,7 @@
     $('authBtn').classList.toggle('on', isAdmin);
     $('brandSub').textContent = isAdmin ? 'ระบบจัดการทีม · โหมดแอดมิน' : 'ระบบจัดการทีม · ดูข้อมูลอย่างเดียว';
     $('playerHint').style.display = isAdmin ? 'block' : 'none';
+    $('staffHint').style.display = isAdmin ? 'block' : 'none';
     $('manageCatBtn').style.display = isAdmin ? 'inline-block' : 'none';
     $('editHistoryBtn').style.display = isAdmin ? 'flex' : 'none';
     fabMode(); render();
@@ -531,16 +620,19 @@
   function activeTab(){ return document.querySelector('.tab-btn.active').dataset.tab; }
   function fabMode(){
     const t = activeTab();
-    $('fabBtn').style.display = (isAdmin && (t==='players' || t==='finance' || t==='trophies')) ? 'flex' : 'none';
+    $('fabBtn').style.display = (isAdmin && (t==='players' || t==='finance' || t==='trophies' || t==='staff')) ? 'flex' : 'none';
   }
 
   // ---------- render ----------
   function render(){
-    renderScoreboard(); renderDashboard(); renderPlayers(); renderTx();
+    renderScoreboard(); renderDashboard(); renderPlayers(); renderStaff(); renderTx();
     renderHistory(); renderTrophies(); fabMode();
   }
   function monthKey(d){ return d.slice(0,7); }
   function thisMonthKey(){ return new Date().toISOString().slice(0,7); }
+  function squadBalance(sq){
+    return txs.filter(t=>t.squad===sq).reduce((s,t)=> s + (t.type==='income'? Number(t.amount): -Number(t.amount)), 0);
+  }
 
   function renderScoreboard(){
     $('sbPlayers').textContent = players.length;
@@ -557,6 +649,10 @@
     const exp = txs.filter(t=>t.type==='expense' && monthKey(t.date)===mk).reduce((s,t)=>s+Number(t.amount),0);
     $('statIncome').textContent = fmt(inc);
     $('statExpense').textContent = fmt(exp);
+
+    $('balU12').textContent = fmt(squadBalance('U12'));
+    $('balU14').textContent = fmt(squadBalance('U14'));
+    $('balGeneral').textContent = fmt(squadBalance('ส่วนกลาง'));
 
     const months = [];
     const now = new Date();
@@ -586,8 +682,9 @@
   }
 
   function renderPlayers(){
-    $('playerCount').textContent = players.length ? `(${players.length} คน)` : '';
-    const sorted = [...players].sort((a,b)=> (a.number||999)-(b.number||999));
+    const filtered = playerSquadFilter==='all' ? players : players.filter(p=>p.squad===playerSquadFilter);
+    $('playerCount').textContent = filtered.length ? `(${filtered.length} คน)` : '';
+    const sorted = [...filtered].sort((a,b)=> (a.number||999)-(b.number||999));
     $('playerList').innerHTML = sorted.length ? sorted.map(p=>{
       const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
       const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
@@ -598,12 +695,39 @@
           <div class="p-name">${escapeHTML(p.name)}</div>
           <div class="p-meta">#${p.number ?? '-'} · ${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี</div>
         </div>
+        <span class="badge squad">${escapeHTML(p.squad)}</span>
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>`;
-    }).join('') : `<div class="empty">ยังไม่มีนักเตะในทีม</div>`;
+    }).join('') : `<div class="empty">ยังไม่มีนักเตะในทีมนี้</div>`;
     if(isAdmin){
       document.querySelectorAll('#playerList .player-row').forEach(row=>{
         row.addEventListener('click', ()=> openPlayerModal(row.dataset.id));
+      });
+    }
+  }
+  document.querySelectorAll('#playerSquadFilters .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#playerSquadFilters .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); playerSquadFilter = chip.dataset.sq; renderPlayers();
+    });
+  });
+
+  function renderStaff(){
+    $('staffCount').textContent = staff.length ? `(${staff.length} คน)` : '';
+    $('staffList').innerHTML = staff.length ? staff.map(s=>{
+      const avatarInner = s.photoId ? `<img src="${photoUrl(s.photoId,120)}" alt="${escapeHTML(s.name)}">` : '👤';
+      return `<div class="staff-row" data-id="${s.id}" style="cursor:${isAdmin?'pointer':'default'}">
+        <div class="jersey avatar">${avatarInner}</div>
+        <div class="p-info">
+          <div class="p-name">${escapeHTML(s.name)}</div>
+          <div class="p-meta">${escapeHTML(s.role||'-')}${s.phone? ' · '+escapeHTML(s.phone):''}</div>
+        </div>
+        <span class="badge squad">${escapeHTML(s.squad)}</span>
+      </div>`;
+    }).join('') : `<div class="empty">ยังไม่มีข้อมูลทีมงาน</div>`;
+    if(isAdmin){
+      document.querySelectorAll('#staffList .staff-row').forEach(row=>{
+        row.addEventListener('click', ()=> openStaffModal(row.dataset.id));
       });
     }
   }
@@ -616,7 +740,10 @@
         <div class="tx-cat">${escapeHTML(cat)}</div>
         <div class="tx-meta">${t.date}${t.note? ' · '+escapeHTML(t.note):''}</div>
       </div>
-      <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
+      <div>
+        <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
+        <div class="tx-squad">${escapeHTML(t.squad)}</div>
+      </div>
     </div>`;
   }
   function attachTxHandlers(container){
@@ -626,9 +753,10 @@
     });
   }
   function renderTx(){
-    const filtered = txFilter==='all' ? txs : txs.filter(t=>t.type===txFilter);
+    let filtered = txFilter==='all' ? txs : txs.filter(t=>t.type===txFilter);
+    if(txSquadFilter!=='all') filtered = filtered.filter(t=>t.squad===txSquadFilter);
     const sorted = [...filtered].sort((a,b)=> b.date.localeCompare(a.date));
-    $('txCount').textContent = txs.length ? `(${txs.length} รายการ)` : '';
+    $('txCount').textContent = filtered.length ? `(${filtered.length} รายการ)` : '';
     $('txList').innerHTML = sorted.length ? sorted.map(txRowHTML).join('') : `<div class="empty">ไม่พบรายการ</div>`;
     attachTxHandlers($('txList'));
   }
@@ -636,6 +764,12 @@
     chip.addEventListener('click', ()=>{
       document.querySelectorAll('#txFilters .chip').forEach(c=>c.classList.remove('active'));
       chip.classList.add('active'); txFilter = chip.dataset.f; renderTx();
+    });
+  });
+  document.querySelectorAll('#txSquadFilters .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#txSquadFilters .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); txSquadFilter = chip.dataset.sq; renderTx();
     });
   });
 
@@ -668,7 +802,7 @@
 
   function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  // ---------- photo handling ----------
+  // ---------- photo handling (shared helper for players + staff) ----------
   function resizeImageToBase64(file){
     return new Promise((resolve, reject)=>{
       const reader = new FileReader();
@@ -691,20 +825,24 @@
       reader.readAsDataURL(file);
     });
   }
-  $('pPhotoFile').addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    try{
-      const base64 = await resizeImageToBase64(file);
-      $('pPhotoBase64').value = base64;
-      $('pPhotoPreview').innerHTML = `<img src="${base64}">`;
-    }catch(err){ toast('ไม่สามารถอ่านรูปภาพนี้ได้', true); }
-  });
-  $('pPhotoRemove').addEventListener('click', ()=>{
-    $('pPhotoBase64').value = '__REMOVE__';
-    $('pPhotoFile').value = '';
-    $('pPhotoPreview').innerHTML = '📷';
-  });
+  function wirePhotoPicker(fileInputId, base64FieldId, previewId, removeBtnId, placeholder){
+    $(fileInputId).addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      try{
+        const base64 = await resizeImageToBase64(file);
+        $(base64FieldId).value = base64;
+        $(previewId).innerHTML = `<img src="${base64}">`;
+      }catch(err){ toast('ไม่สามารถอ่านรูปภาพนี้ได้', true); }
+    });
+    $(removeBtnId).addEventListener('click', ()=>{
+      $(base64FieldId).value = '__REMOVE__';
+      $(fileInputId).value = '';
+      $(previewId).innerHTML = placeholder;
+    });
+  }
+  wirePhotoPicker('pPhotoFile','pPhotoBase64','pPhotoPreview','pPhotoRemove','📷');
+  wirePhotoPicker('sPhotoFile','sPhotoBase64','sPhotoPreview','sPhotoRemove','👤');
 
   // ---------- player modal ----------
   function openPlayerModal(id){
@@ -715,6 +853,7 @@
     $('pPhotoBase64').value = '';
     $('pPhotoFile').value = '';
     $('pPhotoPreview').innerHTML = (p && p.photoId) ? `<img src="${photoUrl(p.photoId,200)}">` : '📷';
+    $('pSquad').value = p ? p.squad : (playerSquadFilter!=='all' ? playerSquadFilter : 'U12');
     $('pName').value = p ? p.name : '';
     $('pNumber').value = p ? p.number : '';
     $('pPosition').value = p ? p.position : 'กองกลาง';
@@ -730,6 +869,7 @@
     if(t==='players') openPlayerModal(null);
     else if(t==='finance') openTxModal(null);
     else if(t==='trophies') openTrophyModal(null);
+    else if(t==='staff') openStaffModal(null);
   });
   $('playerCancel').addEventListener('click', ()=> $('playerOverlay').classList.remove('active'));
   $('playerOverlay').addEventListener('click', e=>{ if(e.target.id==='playerOverlay') $('playerOverlay').classList.remove('active'); });
@@ -740,7 +880,7 @@
     const id = $('pId').value;
     const photoVal = $('pPhotoBase64').value;
     const data = {
-      id: id || undefined, name,
+      id: id || undefined, name, squad: $('pSquad').value,
       number: $('pNumber').value ? parseInt($('pNumber').value,10) : '',
       position: $('pPosition').value,
       age: $('pAge').value ? parseInt($('pAge').value,10) : '',
@@ -762,6 +902,52 @@
     try{
       const res = await apiPost({ action:'deletePlayer', password: adminPw(), data:{ id } });
       if(!handleAuthError(res)){ toast('ลบนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('ลบไม่สำเร็จ', true); }
+  });
+
+  // ---------- staff modal ----------
+  function openStaffModal(id){
+    if(!isAdmin) return;
+    const s = staff.find(x=>x.id===id);
+    $('staffModalTitle').textContent = s ? 'แก้ไขทีมงาน' : 'เพิ่มทีมงาน';
+    $('sId').value = s ? s.id : '';
+    $('sPhotoBase64').value = '';
+    $('sPhotoFile').value = '';
+    $('sPhotoPreview').innerHTML = (s && s.photoId) ? `<img src="${photoUrl(s.photoId,200)}">` : '👤';
+    $('sName').value = s ? s.name : '';
+    $('sRole').value = s ? s.role : 'ผู้จัดการทีม';
+    $('sSquad').value = s ? s.squad : 'ทั้งสโมสร';
+    $('sPhone').value = s ? s.phone : '';
+    $('staffDelete').style.display = s ? 'block' : 'none';
+    $('staffOverlay').classList.add('active');
+  }
+  $('staffCancel').addEventListener('click', ()=> $('staffOverlay').classList.remove('active'));
+  $('staffOverlay').addEventListener('click', e=>{ if(e.target.id==='staffOverlay') $('staffOverlay').classList.remove('active'); });
+
+  $('staffSave').addEventListener('click', async ()=>{
+    const name = $('sName').value.trim();
+    if(!name){ toast('กรุณากรอกชื่อ', true); return; }
+    const id = $('sId').value;
+    const photoVal = $('sPhotoBase64').value;
+    const data = {
+      id: id || undefined, name, role: $('sRole').value, squad: $('sSquad').value,
+      phone: $('sPhone').value.trim()
+    };
+    if(photoVal === '__REMOVE__') data.photoId = '';
+    else if(photoVal) data.photoBase64 = photoVal;
+    $('staffSave').disabled = true;
+    try{
+      const res = await apiPost({ action: id ? 'updateStaff' : 'addStaff', password: adminPw(), data });
+      if(!handleAuthError(res)){ toast('บันทึกข้อมูลทีมงานแล้ว'); $('staffOverlay').classList.remove('active'); await loadAll(); }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+    $('staffSave').disabled = false;
+  });
+  $('staffDelete').addEventListener('click', async ()=>{
+    const id = $('sId').value;
+    if(!confirm('ลบข้อมูลทีมงานคนนี้ใช่หรือไม่?')) return;
+    try{
+      const res = await apiPost({ action:'deleteStaff', password: adminPw(), data:{ id } });
+      if(!handleAuthError(res)){ toast('ลบแล้ว'); $('staffOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
 
@@ -823,6 +1009,7 @@
     $('txModalTitle').textContent = t ? 'แก้ไขรายการ' : 'เพิ่มรายการ';
     $('tId').value = t ? t.id : '';
     setTxType(t ? t.type : 'income');
+    $('tSquad').value = t ? t.squad : (txSquadFilter!=='all' ? txSquadFilter : 'ส่วนกลาง');
     $('tCategory').value = t ? t.category : (categoriesByType(txType)[0]?.name || 'อื่นๆ');
     $('tAmount').value = t ? t.amount : '';
     $('tDate').value = t ? t.date : new Date().toISOString().slice(0,10);
@@ -838,7 +1025,7 @@
     if(!amount || amount<=0){ toast('กรุณากรอกจำนวนเงินให้ถูกต้อง', true); return; }
     if(!$('tDate').value){ toast('กรุณาเลือกวันที่', true); return; }
     const id = $('tId').value;
-    const data = { id: id || undefined, type: txType, category: $('tCategory').value, amount, date: $('tDate').value, note: $('tNote').value.trim() };
+    const data = { id: id || undefined, type: txType, squad: $('tSquad').value, category: $('tCategory').value, amount, date: $('tDate').value, note: $('tNote').value.trim() };
     $('txSave').disabled = true;
     try{
       const res = await apiPost({ action: id ? 'updateTx' : 'addTx', password: adminPw(), data });
