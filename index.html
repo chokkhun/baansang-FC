@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
 <title>บ้านสร้าง FC | ระบบจัดการทีม</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#122A22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="บ้านสร้าง FC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -193,6 +201,40 @@
   .trophy-year{ font-family:'Prompt'; font-weight:700; font-size:12px; color:var(--gold); }
   .trophy-title{ font-weight:600; font-size:14.5px; margin-top:2px; }
   .trophy-detail{ font-size:12.5px; color:rgba(246,243,233,0.55); margin-top:3px; line-height:1.5; }
+
+  .role-tag{ font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:999px; letter-spacing:0.3px; margin-left:6px; vertical-align:1px; }
+  .role-tag.admin{ background:rgba(227,178,60,0.18); color:var(--gold); }
+  .role-tag.staff{ background:rgba(143,212,168,0.16); color:#8FD4A8; }
+
+  .lock-card{ text-align:center; padding:34px 18px; }
+  .lock-card .lock-ic{ font-size:30px; margin-bottom:10px; opacity:0.8; }
+  .lock-card p{ font-size:13px; color:rgba(246,243,233,0.6); margin:0 0 16px; line-height:1.6; }
+  .lock-card .btn{ display:inline-block; padding:11px 22px; }
+  .sb-value.locked, .stat.locked .num{ font-size:16px; opacity:0.55; }
+
+  /* ---- full-screen detail view ---- */
+  .detail-screen{ position:fixed; inset:0; z-index:50; background:var(--pitch-dark); display:none;
+    flex-direction:column; animation: fade .2s ease; }
+  .detail-screen.active{ display:flex; }
+  .detail-head{ display:flex; align-items:center; gap:10px; padding:16px 14px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--pitch-dark); z-index:2; }
+  .detail-back{ width:36px; height:36px; border-radius:10px; border:1px solid var(--line); background:transparent;
+    color:var(--chalk); font-size:16px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .detail-head .dh-title{ font-family:'Prompt'; font-weight:700; font-size:15px; flex:1; min-width:0; }
+  .detail-edit-btn{ border:1px solid var(--gold); color:var(--gold); background:rgba(227,178,60,0.1);
+    font-size:12.5px; font-weight:700; padding:7px 14px; border-radius:999px; cursor:pointer; flex-shrink:0; }
+  .detail-body{ padding:26px 20px 40px; max-width:640px; margin:0 auto; width:100%; overflow-y:auto; text-align:center; }
+  .detail-photo{ width:132px; height:132px; border-radius:50%; margin:0 auto 18px; overflow:hidden;
+    background:var(--pitch-mid); border:3px solid var(--gold); display:flex; align-items:center; justify-content:center;
+    font-family:'Prompt'; font-weight:800; font-size:44px; color:var(--chalk); }
+  .detail-photo img{ width:100%; height:100%; object-fit:cover; }
+  .detail-name{ font-family:'Prompt'; font-weight:800; font-size:21px; margin-bottom:4px; }
+  .detail-sub{ font-size:13.5px; color:rgba(246,243,233,0.55); margin-bottom:22px; }
+  .detail-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left; margin-top:6px; }
+  .detail-grid .dg-item{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .detail-grid .dg-item.full{ grid-column:1 / -1; }
+  .detail-grid .lbl{ font-size:11px; color:rgba(246,243,233,0.5); margin-bottom:4px; }
+  .detail-grid .val{ font-family:'Prompt'; font-weight:600; font-size:15px; }
 </style>
 </head>
 <body>
@@ -232,6 +274,12 @@
 
 <main>
   <section class="view active" id="view-dashboard">
+    <div class="card lock-card" id="dashLock" style="display:none;">
+      <div class="lock-ic">🔒</div>
+      <p>เข้าสู่ระบบเพื่อดูข้อมูลรายรับ-รายจ่ายและยอดคงเหลือของทีม</p>
+      <button class="btn primary" id="dashLoginBtn">เข้าสู่ระบบ</button>
+    </div>
+    <div id="dashFinanceContent">
     <div class="grid2">
       <div class="stat income"><div class="num" id="statIncome">฿0</div><div class="lbl">รายรับเดือนนี้</div></div>
       <div class="stat expense"><div class="num" id="statExpense">฿0</div><div class="lbl">รายจ่ายเดือนนี้</div></div>
@@ -252,6 +300,7 @@
       <div class="section-title">รายการล่าสุด <span class="count" id="recentCount"></span></div>
       <div id="recentTx"></div>
     </div>
+    </div>
   </section>
 
   <section class="view" id="view-players">
@@ -262,16 +311,22 @@
       <button class="chip" data-sq="U14">U14</button>
     </div>
     <div class="card" style="padding:4px 10px;"><div id="playerList"></div></div>
-    <div class="edit-hint" id="playerHint" style="display:none;">แตะรายชื่อเพื่อแก้ไข</div>
+    <div class="edit-hint" id="playerHint">แตะรายชื่อเพื่อดูรายละเอียด</div>
   </section>
 
   <section class="view" id="view-staff">
     <div class="section-title">ทีมงาน <span class="count" id="staffCount"></span></div>
     <div class="card" style="padding:4px 10px;"><div id="staffList"></div></div>
-    <div class="edit-hint" id="staffHint" style="display:none;">แตะรายชื่อเพื่อแก้ไข</div>
+    <div class="edit-hint" id="staffHint">แตะรายชื่อเพื่อดูรายละเอียด</div>
   </section>
 
   <section class="view" id="view-finance">
+    <div class="card lock-card" id="financeLock" style="display:none;">
+      <div class="lock-ic">🔒</div>
+      <p>ข้อมูลงบการเงินของทีมดูได้เฉพาะสมาชิกที่เข้าสู่ระบบเท่านั้น<br>กรุณาเข้าสู่ระบบเพื่อดูรายรับ-รายจ่าย</p>
+      <button class="btn primary" id="financeLoginBtn">เข้าสู่ระบบ</button>
+    </div>
+    <div id="financeContent">
     <div class="section-title">
       รายรับ-รายจ่าย <span class="count" id="txCount"></span>
       <button class="link-btn" id="manageCatBtn" style="display:none;">จัดการหมวดหมู่</button>
@@ -288,6 +343,7 @@
       <button class="chip" data-sq="ส่วนกลาง">ส่วนกลาง</button>
     </div>
     <div class="card" style="padding:4px 10px;"><div id="txList"></div></div>
+    </div>
   </section>
 
   <section class="view" id="view-history">
@@ -322,17 +378,41 @@
 <!-- LOGIN MODAL -->
 <div class="overlay" id="loginOverlay">
   <div class="sheet">
-    <h3>เข้าสู่ระบบแอดมิน</h3>
+    <h3>เข้าสู่ระบบ</h3>
     <div class="field">
-      <label>รหัสผ่านแอดมิน</label>
-      <input id="loginPw" type="password" placeholder="กรอกรหัสผ่าน">
-      <p class="hint">ตั้ง/เปลี่ยนรหัสผ่านได้จากเมนู "⚽ บ้านสร้าง FC" ในไฟล์ Google Sheets</p>
+      <label>ชื่อผู้ใช้ (Username)</label>
+      <input id="loginUser" placeholder="เช่น admin หรือ coach_a" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>รหัสผ่าน</label>
+      <input id="loginPw" type="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password">
+      <p class="hint">แอดมินเข้าด้วย Username "admin" ส่วนสตาฟฟ์/โค้ช/ทีมงานใช้ Username ที่แอดมินตั้งให้<br>จัดการผู้ใช้งานได้จากเมนู "⚽ บ้านสร้าง FC" ในไฟล์ Google Sheets</p>
     </div>
     <div class="btn-row">
       <button class="btn ghost" id="loginCancel">ยกเลิก</button>
       <button class="btn primary" id="loginSubmit">เข้าสู่ระบบ</button>
     </div>
   </div>
+</div>
+
+<!-- PLAYER DETAIL (full screen) -->
+<div class="detail-screen" id="playerDetailScreen">
+  <div class="detail-head">
+    <button class="detail-back" id="playerDetailBack">←</button>
+    <div class="dh-title">รายละเอียดนักเตะ</div>
+    <button class="detail-edit-btn" id="playerDetailEdit" style="display:none;">แก้ไข</button>
+  </div>
+  <div class="detail-body" id="playerDetailBody"></div>
+</div>
+
+<!-- STAFF DETAIL (full screen) -->
+<div class="detail-screen" id="staffDetailScreen">
+  <div class="detail-head">
+    <button class="detail-back" id="staffDetailBack">←</button>
+    <div class="dh-title">รายละเอียดทีมงาน</div>
+    <button class="detail-edit-btn" id="staffDetailEdit" style="display:none;">แก้ไข</button>
+  </div>
+  <div class="detail-body" id="staffDetailBody"></div>
 </div>
 
 <!-- PLAYER MODAL -->
@@ -519,7 +599,8 @@
   let players = [], staff = [], txs = [], categories = [], teamInfo = {}, achievements = [];
   let txFilter = 'all', txSquadFilter = 'all', playerSquadFilter = 'all';
   let txType = 'income', newCatType = 'income';
-  let isAdmin = false;
+  // currentUser: null (guest) หรือ { username, password, role: 'admin'|'staff', name }
+  let currentUser = null;
 
   const $ = id => document.getElementById(id);
   const fmt = n => '฿' + Number(n||0).toLocaleString('th-TH', {maximumFractionDigits:0});
@@ -529,11 +610,23 @@
   };
   const configured = () => SCRIPT_URL && SCRIPT_URL.indexOf('PASTE_YOUR') === -1;
   const photoUrl = (id, size) => id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${size||160}` : '';
+  const isAdmin = () => !!(currentUser && currentUser.role === 'admin');
+  const isLoggedIn = () => !!currentUser;
 
   // ---------- API ----------
-  async function apiGet(){ const res = await fetch(SCRIPT_URL + '?action=getData'); return res.json(); }
+  // สำคัญ: ใช้ cache:'no-store' + timestamp กันตัวเบราว์เซอร์/มือถือ cache ผลลัพธ์ doGet ของ Apps Script ไว้
+  // (สาเหตุหลักที่แก้ไขรายการแล้วโหลดกลับมาเจอข้อมูลเก่า)
+  async function apiGet(){
+    let url = SCRIPT_URL + '?action=getData&_t=' + Date.now();
+    if(currentUser){
+      url += '&username=' + encodeURIComponent(currentUser.username) + '&password=' + encodeURIComponent(currentUser.password);
+    }
+    const res = await fetch(url, { cache: 'no-store' });
+    return res.json();
+  }
   async function apiPost(payload){
-    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const body = Object.assign({}, payload, currentUser ? { username: currentUser.username, password: currentUser.password } : {});
+    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body), cache: 'no-store' });
     return res.json();
   }
 
@@ -570,39 +663,64 @@
   function isoDate(d){ return d.toISOString().slice(0,10); }
 
   // ---------- auth ----------
-  function setAdminUI(){
-    $('authBtn').textContent = isAdmin ? 'ออกจากระบบแอดมิน' : 'เข้าสู่ระบบแอดมิน';
-    $('authBtn').classList.toggle('on', isAdmin);
-    $('brandSub').textContent = isAdmin ? 'ระบบจัดการทีม · โหมดแอดมิน' : 'ระบบจัดการทีม · ดูข้อมูลอย่างเดียว';
-    $('playerHint').style.display = isAdmin ? 'block' : 'none';
-    $('staffHint').style.display = isAdmin ? 'block' : 'none';
-    $('manageCatBtn').style.display = isAdmin ? 'inline-block' : 'none';
-    $('editHistoryBtn').style.display = isAdmin ? 'flex' : 'none';
+  function setAuthUI(){
+    const admin = isAdmin(), loggedIn = isLoggedIn();
+    if(loggedIn){
+      const roleLabel = admin ? 'แอดมิน' : 'ทีมงาน';
+      $('authBtn').innerHTML = `ออกจากระบบ <span class="role-tag ${admin?'admin':'staff'}">${escapeHTML(currentUser.name||roleLabel)}</span>`;
+    } else {
+      $('authBtn').textContent = 'เข้าสู่ระบบ';
+    }
+    $('authBtn').classList.toggle('on', loggedIn);
+    $('brandSub').textContent = admin ? 'ระบบจัดการทีม · โหมดแอดมิน'
+      : loggedIn ? 'ระบบจัดการทีม · โหมดทีมงาน (ดูอย่างเดียว)'
+      : 'ระบบจัดการทีม · ดูข้อมูลอย่างเดียว';
+    const hintTxt = admin ? 'แตะรายชื่อเพื่อดูรายละเอียด / แก้ไข' : 'แตะรายชื่อเพื่อดูรายละเอียด';
+    $('playerHint').textContent = hintTxt;
+    $('staffHint').textContent = hintTxt;
+    $('manageCatBtn').style.display = admin ? 'inline-block' : 'none';
+    $('editHistoryBtn').style.display = admin ? 'flex' : 'none';
+
+    // งบการเงิน: ต้องล็อกอิน (แอดมินหรือทีมงาน) ถึงจะเห็น
+    $('dashLock').style.display = loggedIn ? 'none' : 'block';
+    $('dashFinanceContent').style.display = loggedIn ? '' : 'none';
+    $('financeLock').style.display = loggedIn ? 'none' : 'block';
+    $('financeContent').style.display = loggedIn ? '' : 'none';
+
     fabMode(); render();
   }
   $('authBtn').addEventListener('click', ()=>{
-    if(isAdmin){
-      isAdmin = false; sessionStorage.removeItem('bsfc_admin_pw');
-      toast('ออกจากระบบแอดมินแล้ว'); setAdminUI();
-    } else { $('loginPw').value=''; $('loginOverlay').classList.add('active'); }
+    if(currentUser){
+      currentUser = null; sessionStorage.removeItem('bsfc_user');
+      toast('ออกจากระบบแล้ว'); loadAll().then(setAuthUI);
+    } else { openLogin(); }
   });
+  function openLogin(){ $('loginUser').value=''; $('loginPw').value=''; $('loginOverlay').classList.add('active'); }
+  $('dashLoginBtn').addEventListener('click', openLogin);
+  $('financeLoginBtn').addEventListener('click', openLogin);
   $('loginCancel').addEventListener('click', ()=> $('loginOverlay').classList.remove('active'));
   $('loginSubmit').addEventListener('click', async ()=>{
+    const username = $('loginUser').value.trim();
     const pw = $('loginPw').value;
-    if(!pw){ toast('กรุณากรอกรหัสผ่าน', true); return; }
+    if(!username || !pw){ toast('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน', true); return; }
     if(!configured()){ toast('ยังไม่ได้เชื่อมต่อ Google Sheets', true); return; }
+    $('loginSubmit').disabled = true;
     try{
-      const res = await apiPost({ action:'login', password: pw });
+      const res = await fetch(SCRIPT_URL, { method:'POST', cache:'no-store',
+        body: JSON.stringify({ action:'login', username, password: pw }) }).then(r=>r.json());
       if(res.ok){
-        isAdmin = true; sessionStorage.setItem('bsfc_admin_pw', pw);
+        currentUser = { username: res.username, password: pw, role: res.role, name: res.name };
+        sessionStorage.setItem('bsfc_user', JSON.stringify(currentUser));
         $('loginOverlay').classList.remove('active');
-        toast('เข้าสู่ระบบแอดมินสำเร็จ'); setAdminUI();
-      } else { toast('รหัสผ่านไม่ถูกต้อง', true); }
+        toast('เข้าสู่ระบบสำเร็จ'); await loadAll(); setAuthUI();
+      } else { toast('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', true); }
     }catch(e){ toast('เชื่อมต่อไม่สำเร็จ', true); }
+    $('loginSubmit').disabled = false;
   });
-  function adminPw(){ return sessionStorage.getItem('bsfc_admin_pw') || ''; }
   function handleAuthError(res){
-    if(res && res.error === 'unauthorized'){ toast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', true); return true; }
+    if(res && (res.error === 'unauthorized' || res.error === 'forbidden')){
+      toast('เซสชันหมดอายุหรือไม่มีสิทธิ์ กรุณาเข้าสู่ระบบใหม่', true); return true;
+    }
     if(res && res.error){ toast(res.error, true); return true; }
     return false;
   }
@@ -620,7 +738,7 @@
   function activeTab(){ return document.querySelector('.tab-btn.active').dataset.tab; }
   function fabMode(){
     const t = activeTab();
-    $('fabBtn').style.display = (isAdmin && (t==='players' || t==='finance' || t==='trophies' || t==='staff')) ? 'flex' : 'none';
+    $('fabBtn').style.display = (isAdmin() && (t==='players' || t==='finance' || t==='trophies' || t==='staff')) ? 'flex' : 'none';
   }
 
   // ---------- render ----------
@@ -636,6 +754,13 @@
 
   function renderScoreboard(){
     $('sbPlayers').textContent = players.length;
+    $('sbBalance').classList.toggle('locked', !isLoggedIn());
+    $('sbMonth').classList.toggle('locked', !isLoggedIn());
+    if(!isLoggedIn()){
+      $('sbBalance').textContent = '🔒';
+      $('sbMonth').textContent = '🔒';
+      return;
+    }
     const balance = txs.reduce((s,t)=> s + (t.type==='income'? Number(t.amount): -Number(t.amount)), 0);
     $('sbBalance').textContent = fmt(balance);
     const mk = thisMonthKey();
@@ -689,7 +814,7 @@
       const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
       const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
       const jerseyInner = p.photoId ? `<img src="${photoUrl(p.photoId,120)}" alt="${escapeHTML(p.name)}">` : (p.number ?? '-');
-      return `<div class="player-row" data-id="${p.id}" style="cursor:${isAdmin?'pointer':'default'}">
+      return `<div class="player-row" data-id="${p.id}" style="cursor:pointer">
         <div class="jersey">${jerseyInner}</div>
         <div class="p-info">
           <div class="p-name">${escapeHTML(p.name)}</div>
@@ -699,11 +824,9 @@
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>`;
     }).join('') : `<div class="empty">ยังไม่มีนักเตะในทีมนี้</div>`;
-    if(isAdmin){
-      document.querySelectorAll('#playerList .player-row').forEach(row=>{
-        row.addEventListener('click', ()=> openPlayerModal(row.dataset.id));
-      });
-    }
+    document.querySelectorAll('#playerList .player-row').forEach(row=>{
+      row.addEventListener('click', ()=> openPlayerDetail(row.dataset.id));
+    });
   }
   document.querySelectorAll('#playerSquadFilters .chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
@@ -716,7 +839,7 @@
     $('staffCount').textContent = staff.length ? `(${staff.length} คน)` : '';
     $('staffList').innerHTML = staff.length ? staff.map(s=>{
       const avatarInner = s.photoId ? `<img src="${photoUrl(s.photoId,120)}" alt="${escapeHTML(s.name)}">` : '👤';
-      return `<div class="staff-row" data-id="${s.id}" style="cursor:${isAdmin?'pointer':'default'}">
+      return `<div class="staff-row" data-id="${s.id}" style="cursor:pointer">
         <div class="jersey avatar">${avatarInner}</div>
         <div class="p-info">
           <div class="p-name">${escapeHTML(s.name)}</div>
@@ -725,16 +848,14 @@
         <span class="badge squad">${escapeHTML(s.squad)}</span>
       </div>`;
     }).join('') : `<div class="empty">ยังไม่มีข้อมูลทีมงาน</div>`;
-    if(isAdmin){
-      document.querySelectorAll('#staffList .staff-row').forEach(row=>{
-        row.addEventListener('click', ()=> openStaffModal(row.dataset.id));
-      });
-    }
+    document.querySelectorAll('#staffList .staff-row').forEach(row=>{
+      row.addEventListener('click', ()=> openStaffDetail(row.dataset.id));
+    });
   }
 
   function txRowHTML(t){
     const cat = t.category || (t.type==='income'?'รายรับ':'รายจ่าย');
-    return `<div class="tx-row" data-id="${t.id}" style="cursor:${isAdmin?'pointer':'default'}">
+    return `<div class="tx-row" data-id="${t.id}" style="cursor:${isAdmin()?'pointer':'default'}">
       <div class="tx-dot ${t.type}"></div>
       <div class="tx-info">
         <div class="tx-cat">${escapeHTML(cat)}</div>
@@ -747,7 +868,7 @@
     </div>`;
   }
   function attachTxHandlers(container){
-    if(!isAdmin) return;
+    if(!isAdmin()) return;
     container.querySelectorAll('.tx-row').forEach(row=>{
       row.addEventListener('click', ()=> openTxModal(row.dataset.id));
     });
@@ -777,15 +898,15 @@
     $('infoFounded').textContent = teamInfo.founded || '-';
     $('infoGround').textContent = teamInfo.homeGround || '-';
     $('infoCoach').textContent = teamInfo.coach || '-';
-    $('infoMission').textContent = teamInfo.mission || (isAdmin ? 'ยังไม่ได้กรอกข้อมูล แตะปุ่มแก้ไขเพื่อเพิ่ม' : 'ยังไม่มีข้อมูล');
-    $('infoHistory').textContent = teamInfo.history || (isAdmin ? 'ยังไม่ได้กรอกข้อมูล แตะปุ่มแก้ไขเพื่อเพิ่ม' : 'ยังไม่มีข้อมูล');
+    $('infoMission').textContent = teamInfo.mission || (isAdmin() ? 'ยังไม่ได้กรอกข้อมูล แตะปุ่มแก้ไขเพื่อเพิ่ม' : 'ยังไม่มีข้อมูล');
+    $('infoHistory').textContent = teamInfo.history || (isAdmin() ? 'ยังไม่ได้กรอกข้อมูล แตะปุ่มแก้ไขเพื่อเพิ่ม' : 'ยังไม่มีข้อมูล');
   }
 
   function renderTrophies(){
     $('trophyCount').textContent = achievements.length ? `(${achievements.length} รายการ)` : '';
     const sorted = [...achievements].sort((a,b)=> b.year.localeCompare(a.year));
     $('trophyList').innerHTML = sorted.length ? sorted.map(a=>`
-      <div class="trophy-row" data-id="${a.id}" style="cursor:${isAdmin?'pointer':'default'}">
+      <div class="trophy-row" data-id="${a.id}" style="cursor:${isAdmin()?'pointer':'default'}">
         <div class="trophy-icon">🏆</div>
         <div class="trophy-info">
           <div class="trophy-year">${escapeHTML(a.year)}</div>
@@ -793,7 +914,7 @@
           ${a.detail ? `<div class="trophy-detail">${escapeHTML(a.detail)}</div>` : ''}
         </div>
       </div>`).join('') : `<div class="empty">ยังไม่มีรายการในทำเนียบแชมป์</div>`;
-    if(isAdmin){
+    if(isAdmin()){
       document.querySelectorAll('#trophyList .trophy-row').forEach(row=>{
         row.addEventListener('click', ()=> openTrophyModal(row.dataset.id));
       });
@@ -844,9 +965,54 @@
   wirePhotoPicker('pPhotoFile','pPhotoBase64','pPhotoPreview','pPhotoRemove','📷');
   wirePhotoPicker('sPhotoFile','sPhotoBase64','sPhotoPreview','sPhotoRemove','👤');
 
+  // ---------- player detail (full screen) ----------
+  function openPlayerDetail(id){
+    const p = players.find(x=>x.id===id);
+    if(!p) return;
+    const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
+    const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
+    const photoInner = p.photoId ? `<img src="${photoUrl(p.photoId,320)}" alt="${escapeHTML(p.name)}">` : (p.number ?? '👤');
+    $('playerDetailBody').innerHTML = `
+      <div class="detail-photo">${photoInner}</div>
+      <div class="detail-name">${escapeHTML(p.name)}</div>
+      <div class="detail-sub">#${p.number ?? '-'} · ${escapeHTML(p.position||'-')} · ทีม ${escapeHTML(p.squad)}</div>
+      <div class="detail-grid">
+        <div class="dg-item"><div class="lbl">เบอร์เสื้อ</div><div class="val">${p.number ?? '-'}</div></div>
+        <div class="dg-item"><div class="lbl">อายุ</div><div class="val">${p.age || '-'} ปี</div></div>
+        <div class="dg-item"><div class="lbl">ตำแหน่ง</div><div class="val">${escapeHTML(p.position||'-')}</div></div>
+        <div class="dg-item"><div class="lbl">ทีม</div><div class="val">${escapeHTML(p.squad)}</div></div>
+        <div class="dg-item"><div class="lbl">สถานะ</div><div class="val"><span class="badge ${badgeClass}">${badgeText}</span></div></div>
+        <div class="dg-item"><div class="lbl">เบอร์โทร (ผู้ปกครอง)</div><div class="val">${escapeHTML(p.phone||'-')}</div></div>
+      </div>`;
+    $('playerDetailEdit').style.display = isAdmin() ? 'inline-block' : 'none';
+    $('playerDetailEdit').onclick = ()=>{ $('playerDetailScreen').classList.remove('active'); openPlayerModal(p.id); };
+    $('playerDetailScreen').classList.add('active');
+  }
+  $('playerDetailBack').addEventListener('click', ()=> $('playerDetailScreen').classList.remove('active'));
+
+  // ---------- staff detail (full screen) ----------
+  function openStaffDetail(id){
+    const s = staff.find(x=>x.id===id);
+    if(!s) return;
+    const photoInner = s.photoId ? `<img src="${photoUrl(s.photoId,320)}" alt="${escapeHTML(s.name)}">` : '👤';
+    $('staffDetailBody').innerHTML = `
+      <div class="detail-photo">${photoInner}</div>
+      <div class="detail-name">${escapeHTML(s.name)}</div>
+      <div class="detail-sub">${escapeHTML(s.role||'-')}</div>
+      <div class="detail-grid">
+        <div class="dg-item"><div class="lbl">ตำแหน่ง</div><div class="val">${escapeHTML(s.role||'-')}</div></div>
+        <div class="dg-item"><div class="lbl">ดูแลทีม</div><div class="val">${escapeHTML(s.squad||'-')}</div></div>
+        <div class="dg-item full"><div class="lbl">เบอร์โทร</div><div class="val">${escapeHTML(s.phone||'-')}</div></div>
+      </div>`;
+    $('staffDetailEdit').style.display = isAdmin() ? 'inline-block' : 'none';
+    $('staffDetailEdit').onclick = ()=>{ $('staffDetailScreen').classList.remove('active'); openStaffModal(s.id); };
+    $('staffDetailScreen').classList.add('active');
+  }
+  $('staffDetailBack').addEventListener('click', ()=> $('staffDetailScreen').classList.remove('active'));
+
   // ---------- player modal ----------
   function openPlayerModal(id){
-    if(!isAdmin) return;
+    if(!isAdmin()) return;
     const p = players.find(x=>x.id===id);
     $('playerModalTitle').textContent = p ? 'แก้ไขนักเตะ' : 'เพิ่มนักเตะ';
     $('pId').value = p ? p.id : '';
@@ -864,7 +1030,7 @@
     $('playerOverlay').classList.add('active');
   }
   $('fabBtn').addEventListener('click', ()=>{
-    if(!isAdmin) return;
+    if(!isAdmin()) return;
     const t = activeTab();
     if(t==='players') openPlayerModal(null);
     else if(t==='finance') openTxModal(null);
@@ -891,7 +1057,7 @@
     else if(photoVal) data.photoBase64 = photoVal;
     $('playerSave').disabled = true;
     try{
-      const res = await apiPost({ action: id ? 'updatePlayer' : 'addPlayer', password: adminPw(), data });
+      const res = await apiPost({ action: id ? 'updatePlayer' : 'addPlayer', data });
       if(!handleAuthError(res)){ toast('บันทึกข้อมูลนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('playerSave').disabled = false;
@@ -900,14 +1066,14 @@
     const id = $('pId').value;
     if(!confirm('ลบนักเตะคนนี้ใช่หรือไม่?')) return;
     try{
-      const res = await apiPost({ action:'deletePlayer', password: adminPw(), data:{ id } });
+      const res = await apiPost({ action:'deletePlayer', data:{ id } });
       if(!handleAuthError(res)){ toast('ลบนักเตะแล้ว'); $('playerOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
 
   // ---------- staff modal ----------
   function openStaffModal(id){
-    if(!isAdmin) return;
+    if(!isAdmin()) return;
     const s = staff.find(x=>x.id===id);
     $('staffModalTitle').textContent = s ? 'แก้ไขทีมงาน' : 'เพิ่มทีมงาน';
     $('sId').value = s ? s.id : '';
@@ -937,7 +1103,7 @@
     else if(photoVal) data.photoBase64 = photoVal;
     $('staffSave').disabled = true;
     try{
-      const res = await apiPost({ action: id ? 'updateStaff' : 'addStaff', password: adminPw(), data });
+      const res = await apiPost({ action: id ? 'updateStaff' : 'addStaff', data });
       if(!handleAuthError(res)){ toast('บันทึกข้อมูลทีมงานแล้ว'); $('staffOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('staffSave').disabled = false;
@@ -946,7 +1112,7 @@
     const id = $('sId').value;
     if(!confirm('ลบข้อมูลทีมงานคนนี้ใช่หรือไม่?')) return;
     try{
-      const res = await apiPost({ action:'deleteStaff', password: adminPw(), data:{ id } });
+      const res = await apiPost({ action:'deleteStaff', data:{ id } });
       if(!handleAuthError(res)){ toast('ลบแล้ว'); $('staffOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
@@ -984,7 +1150,7 @@
         chip.addEventListener('click', async ()=>{
           if(!confirm('ลบหมวดหมู่นี้ใช่หรือไม่?')) return;
           try{
-            const res = await apiPost({ action:'deleteCategory', password: adminPw(), data:{ id: chip.dataset.id } });
+            const res = await apiPost({ action:'deleteCategory', data:{ id: chip.dataset.id } });
             if(!handleAuthError(res)){ toast('ลบหมวดหมู่แล้ว'); await loadAll(); renderCategoryManager(); }
           }catch(e){ toast('ลบไม่สำเร็จ', true); }
         });
@@ -997,14 +1163,14 @@
     const name = $('newCatName').value.trim();
     if(!name){ toast('กรุณากรอกชื่อหมวดหมู่', true); return; }
     try{
-      const res = await apiPost({ action:'addCategory', password: adminPw(), data:{ type:newCatType, name } });
+      const res = await apiPost({ action:'addCategory', data:{ type:newCatType, name } });
       if(!handleAuthError(res)){ toast('เพิ่มหมวดหมู่แล้ว'); $('newCatName').value=''; await loadAll(); renderCategoryManager(); fillCategoryOptions(); }
     }catch(e){ toast('เพิ่มไม่สำเร็จ', true); }
   });
 
   // ---------- tx modal ----------
   function openTxModal(id){
-    if(!isAdmin) return;
+    if(!isAdmin()) return;
     const t = txs.find(x=>x.id===id);
     $('txModalTitle').textContent = t ? 'แก้ไขรายการ' : 'เพิ่มรายการ';
     $('tId').value = t ? t.id : '';
@@ -1028,7 +1194,7 @@
     const data = { id: id || undefined, type: txType, squad: $('tSquad').value, category: $('tCategory').value, amount, date: $('tDate').value, note: $('tNote').value.trim() };
     $('txSave').disabled = true;
     try{
-      const res = await apiPost({ action: id ? 'updateTx' : 'addTx', password: adminPw(), data });
+      const res = await apiPost({ action: id ? 'updateTx' : 'addTx', data });
       if(!handleAuthError(res)){ toast('บันทึกรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('txSave').disabled = false;
@@ -1037,7 +1203,7 @@
     const id = $('tId').value;
     if(!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
     try{
-      const res = await apiPost({ action:'deleteTx', password: adminPw(), data:{ id } });
+      const res = await apiPost({ action:'deleteTx', data:{ id } });
       if(!handleAuthError(res)){ toast('ลบรายการแล้ว'); $('txOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
@@ -1060,7 +1226,7 @@
     };
     $('historySave').disabled = true;
     try{
-      const res = await apiPost({ action:'updateTeamInfo', password: adminPw(), data });
+      const res = await apiPost({ action:'updateTeamInfo', data });
       if(!handleAuthError(res)){ toast('บันทึกประวัติทีมแล้ว'); $('historyOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('historySave').disabled = false;
@@ -1068,7 +1234,7 @@
 
   // ---------- trophy modal ----------
   function openTrophyModal(id){
-    if(!isAdmin) return;
+    if(!isAdmin()) return;
     const a = achievements.find(x=>x.id===id);
     $('trophyModalTitle').textContent = a ? 'แก้ไขรายการ' : 'เพิ่มรายการในทำเนียบแชมป์';
     $('trId').value = a ? a.id : '';
@@ -1088,7 +1254,7 @@
     const data = { id: id || undefined, year, title, detail: $('trDetail').value.trim() };
     $('trophySave').disabled = true;
     try{
-      const res = await apiPost({ action: id ? 'updateAchievement' : 'addAchievement', password: adminPw(), data });
+      const res = await apiPost({ action: id ? 'updateAchievement' : 'addAchievement', data });
       if(!handleAuthError(res)){ toast('บันทึกแล้ว'); $('trophyOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('trophySave').disabled = false;
@@ -1097,16 +1263,18 @@
     const id = $('trId').value;
     if(!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
     try{
-      const res = await apiPost({ action:'deleteAchievement', password: adminPw(), data:{ id } });
+      const res = await apiPost({ action:'deleteAchievement', data:{ id } });
       if(!handleAuthError(res)){ toast('ลบแล้ว'); $('trophyOverlay').classList.remove('active'); await loadAll(); }
     }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
 
   // ---------- init ----------
-  const savedPw = sessionStorage.getItem('bsfc_admin_pw');
-  if(savedPw){ isAdmin = true; }
-  setAdminUI();
-  loadAll();
+  try{
+    const savedUser = sessionStorage.getItem('bsfc_user');
+    if(savedUser) currentUser = JSON.parse(savedUser);
+  }catch(e){ currentUser = null; }
+  setAuthUI();
+  loadAll().then(setAuthUI);
 })();
 </script>
 </body>
