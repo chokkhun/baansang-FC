@@ -329,11 +329,6 @@
 
 <main>
   <section class="view active" id="view-dashboard">
-    <div class="card lock-card" id="dashLock" style="display:none;">
-      <div class="lock-ic">🔒</div>
-      <p>เข้าสู่ระบบเพื่อดูข้อมูลรายรับ-รายจ่ายและยอดคงเหลือของทีม</p>
-      <button class="btn primary" id="dashLoginBtn">เข้าสู่ระบบ</button>
-    </div>
     <div id="dashFinanceContent">
     <div class="grid2">
       <div class="stat income"><div class="num" id="statIncome">฿0</div><div class="lbl">รายรับเดือนนี้</div></div>
@@ -826,6 +821,10 @@
     if(!configured()){ $('setupBanner').style.display = 'block'; return; }
     try{
       const data = await apiGet();
+      if(data && data.error){
+        toast('โหลดข้อมูลไม่สำเร็จ: ' + data.error + ' (ลองรันเมนู Setup ในชีทอีกครั้ง)', true);
+        return;
+      }
       players = (data.players || []).map(normalizePlayer);
       staff = (data.staff || []).map(normalizeStaff);
       txs = (data.transactions || []).map(normalizeTx);
@@ -909,8 +908,7 @@
     // ส่วนอื่นๆ (ประวัติทีม, นักเตะ, ทีมงาน, ตารางแข่งขัน, ทำเนียบแชมป์) ทุกคนที่ล็อกอินแล้วแก้ไขได้
     $('editHistoryBtn').style.display = loggedIn ? 'flex' : 'none';
 
-    // งบการเงิน: ต้องล็อกอิน (แอดมินหรือทีมงาน) ถึงจะเห็น
-    $('dashLock').style.display = loggedIn ? 'none' : 'block';
+    // งบการเงิน: ต้องล็อกอิน (แอดมินหรือทีมงาน) ถึงจะเห็น — ถ้ายังไม่ล็อกอิน ส่วนนี้จะไม่แสดงเลยในหน้าแรก
     $('dashFinanceContent').style.display = loggedIn ? '' : 'none';
     $('financeLock').style.display = loggedIn ? 'none' : 'block';
     $('financeContent').style.display = loggedIn ? '' : 'none';
@@ -931,7 +929,6 @@
     toast('ออกจากระบบแล้ว'); loadAll().then(setAuthUI);
   });
   function openLogin(){ $('loginUser').value=''; $('loginPw').value=''; $('loginOverlay').classList.add('active'); }
-  $('dashLoginBtn').addEventListener('click', openLogin);
   $('financeLoginBtn').addEventListener('click', openLogin);
   $('loginCancel').addEventListener('click', ()=> $('loginOverlay').classList.remove('active'));
   $('loginSubmit').addEventListener('click', async ()=>{
