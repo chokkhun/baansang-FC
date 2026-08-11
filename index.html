@@ -472,6 +472,7 @@
       <button class="chip" data-sq="ทั้งสโมสร">ทั้งสโมสร</button>
     </div>
     <div class="card" style="padding:4px 10px;"><div id="trophyList"></div></div>
+    <div class="edit-hint" id="trophyHint">แตะรายการเพื่อดูรายละเอียด</div>
   </section>
 </main>
 
@@ -525,6 +526,16 @@
     <button class="detail-edit-btn" id="matchDetailEdit" style="display:none;">แก้ไข</button>
   </div>
   <div class="detail-body" id="matchDetailBody"></div>
+</div>
+
+<!-- TROPHY DETAIL (full screen) -->
+<div class="detail-screen" id="trophyDetailScreen">
+  <div class="detail-head">
+    <button class="detail-back" id="trophyDetailBack">←</button>
+    <div class="dh-title">รายละเอียดทำเนียบแชมป์</div>
+    <button class="detail-edit-btn" id="trophyDetailEdit" style="display:none;">แก้ไข</button>
+  </div>
+  <div class="detail-body" id="trophyDetailBody"></div>
 </div>
 
 <!-- PLAYER MODAL -->
@@ -937,6 +948,7 @@
     $('playerHint').textContent = hintTxt;
     $('staffHint').textContent = hintTxt;
     $('matchHint').textContent = loggedIn ? 'แตะรายการเพื่อดูรายละเอียด / แก้ไข' : 'แตะรายการเพื่อดูรายละเอียด';
+    $('trophyHint').textContent = loggedIn ? 'แตะรายการเพื่อดูรายละเอียด / แก้ไข' : 'แตะรายการเพื่อดูรายละเอียด';
     // จัดการหมวดหมู่และการแก้ไขรายรับ-รายจ่าย สงวนไว้เฉพาะแอดมินเท่านั้น (งบการเงิน)
     $('manageCatBtn').style.display = admin ? 'inline-block' : 'none';
     // ส่วนอื่นๆ (ประวัติทีม, นักเตะ, ทีมงาน, ตารางแข่งขัน, ทำเนียบแชมป์) ทุกคนที่ล็อกอินแล้วแก้ไขได้
@@ -1125,7 +1137,7 @@
         <div class="jersey avatar">${avatarInner}</div>
         <div class="p-info">
           <div class="p-name">${escapeHTML(s.name)}</div>
-          <div class="p-meta">${escapeHTML(s.role||'-')}${s.phone? ' · '+escapeHTML(s.phone):''}</div>
+          <div class="p-meta">${escapeHTML(s.role||'-')}${(isLoggedIn() && s.phone)? ' · '+escapeHTML(s.phone):''}</div>
         </div>
         <span class="badge squad">${escapeHTML(squadLabel(s.squad))}</span>
       </div>`;
@@ -1188,7 +1200,7 @@
     const iconInner = a.photoId
       ? `<img src="${photoUrl(a.photoId,120)}" alt="${escapeHTML(a.title)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
       : '🏆';
-    return `<div class="trophy-row" data-id="${a.id}" style="cursor:${isLoggedIn()?'pointer':'default'}">
+    return `<div class="trophy-row" data-id="${a.id}" style="cursor:pointer">
       <div class="trophy-icon" style="overflow:hidden;${a.photoId?'padding:0;':''}">${iconInner}</div>
       <div class="trophy-info">
         <div class="trophy-year">${escapeHTML(a.year)} <span class="badge squad" style="margin-left:4px;">${escapeHTML(squadLabel(a.squad||'ทั้งสโมสร'))}</span></div>
@@ -1202,11 +1214,9 @@
     $('trophyCount').textContent = filtered.length ? `(${filtered.length} รายการ)` : '';
     const sorted = [...filtered].sort((a,b)=> b.year.localeCompare(a.year));
     $('trophyList').innerHTML = sorted.length ? sorted.map(trophyRowHTML).join('') : `<div class="empty">ยังไม่มีรายการในทำเนียบแชมป์</div>`;
-    if(isLoggedIn()){
-      document.querySelectorAll('#trophyList .trophy-row').forEach(row=>{
-        row.addEventListener('click', ()=> openTrophyModal(row.dataset.id));
-      });
-    }
+    document.querySelectorAll('#trophyList .trophy-row').forEach(row=>{
+      row.addEventListener('click', ()=> openTrophyDetail(row.dataset.id));
+    });
   }
   document.querySelectorAll('#trophySquadFilters .chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
@@ -1224,11 +1234,9 @@
     let list = dashTrophySquad==='all' ? achievements : achievements.filter(a=>a.squad===dashTrophySquad);
     list = [...list].sort((a,b)=> b.year.localeCompare(a.year)).slice(0,3);
     $('dashTrophyPreview').innerHTML = list.length ? list.map(trophyRowHTML).join('') : `<div class="empty">ยังไม่มีรายการในทำเนียบแชมป์</div>`;
-    if(isLoggedIn()){
-      document.querySelectorAll('#dashTrophyPreview .trophy-row').forEach(row=>{
-        row.addEventListener('click', ()=> openTrophyModal(row.dataset.id));
-      });
-    }
+    document.querySelectorAll('#dashTrophyPreview .trophy-row').forEach(row=>{
+      row.addEventListener('click', ()=> openTrophyDetail(row.dataset.id));
+    });
   }
 
   // ---------- matches ----------
@@ -1419,7 +1427,7 @@
         <div class="dg-item"><div class="lbl">ตำแหน่ง</div><div class="val">${escapeHTML(p.position||'-')}</div></div>
         <div class="dg-item"><div class="lbl">ทีม</div><div class="val">${escapeHTML(squadLabel(p.squad))}</div></div>
         <div class="dg-item"><div class="lbl">สถานะ</div><div class="val"><span class="badge ${badgeClass}">${badgeText}</span></div></div>
-        <div class="dg-item"><div class="lbl">เบอร์โทร (ผู้ปกครอง)</div><div class="val">${escapeHTML(p.phone||'-')}</div></div>
+        ${isLoggedIn() ? `<div class="dg-item"><div class="lbl">เบอร์โทร (ผู้ปกครอง)</div><div class="val">${escapeHTML(p.phone||'-')}</div></div>` : ''}
         ${extraHTML}
       </div>`;
     $('playerDetailEdit').style.display = isLoggedIn() ? 'inline-block' : 'none';
@@ -1444,7 +1452,7 @@
       <div class="detail-grid">
         <div class="dg-item"><div class="lbl">ตำแหน่ง</div><div class="val">${escapeHTML(s.role||'-')}</div></div>
         <div class="dg-item"><div class="lbl">ดูแลทีม</div><div class="val">${escapeHTML(squadLabel(s.squad||'-'))}</div></div>
-        <div class="dg-item full"><div class="lbl">เบอร์โทร</div><div class="val">${escapeHTML(s.phone||'-')}</div></div>
+        ${isLoggedIn() ? `<div class="dg-item full"><div class="lbl">เบอร์โทร</div><div class="val">${escapeHTML(s.phone||'-')}</div></div>` : ''}
         ${extraHTML}
       </div>`;
     $('staffDetailEdit').style.display = isLoggedIn() ? 'inline-block' : 'none';
@@ -1478,6 +1486,26 @@
     $('matchDetailScreen').classList.add('active');
   }
   $('matchDetailBack').addEventListener('click', ()=> $('matchDetailScreen').classList.remove('active'));
+
+  // ---------- trophy detail (full screen) ----------
+  function openTrophyDetail(id){
+    const a = achievements.find(x=>x.id===id);
+    if(!a) return;
+    const photoInner = a.photoId ? `<img src="${photoUrl(a.photoId,320)}" alt="${escapeHTML(a.title)}">` : '🏆';
+    $('trophyDetailBody').innerHTML = `
+      <div class="detail-photo">${photoInner}</div>
+      <div class="detail-name">${escapeHTML(a.title)}</div>
+      <div class="detail-sub">${escapeHTML(a.year)} · ${escapeHTML(squadLabel(a.squad||'ทั้งสโมสร'))}</div>
+      <div class="detail-grid">
+        <div class="dg-item"><div class="lbl">ปี</div><div class="val">${escapeHTML(a.year)}</div></div>
+        <div class="dg-item"><div class="lbl">ทีม</div><div class="val">${escapeHTML(squadLabel(a.squad||'ทั้งสโมสร'))}</div></div>
+        ${a.detail ? `<div class="dg-item full"><div class="lbl">รายละเอียดเพิ่มเติม</div><div class="val" style="font-weight:400;">${escapeHTML(a.detail)}</div></div>` : ''}
+      </div>`;
+    $('trophyDetailEdit').style.display = isLoggedIn() ? 'inline-block' : 'none';
+    $('trophyDetailEdit').onclick = ()=>{ $('trophyDetailScreen').classList.remove('active'); openTrophyModal(a.id); };
+    $('trophyDetailScreen').classList.add('active');
+  }
+  $('trophyDetailBack').addEventListener('click', ()=> $('trophyDetailScreen').classList.remove('active'));
 
   // ---------- player modal ----------
   function openPlayerModal(id){
