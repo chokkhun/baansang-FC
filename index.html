@@ -116,6 +116,13 @@
   .mini-stat .num{ font-family:'Prompt'; font-weight:700; font-size:15.5px; color:var(--gold); }
   .mini-stat .lbl{ font-size:10.5px; color:rgba(246,243,233,0.5); margin-top:3px; }
 
+  .squad-summary-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 4px; border-bottom:1px solid var(--line); }
+  .squad-summary-row:last-child{ border-bottom:none; }
+  .squad-summary-name{ font-weight:700; font-family:'Prompt'; font-size:14px; }
+  .squad-summary-figures{ display:flex; gap:14px; font-size:13px; font-family:'Prompt'; font-weight:600; }
+  .squad-summary-figures .inc{ color:#8FD4A8; }
+  .squad-summary-figures .exp{ color:#E08064; }
+
   .chart{ display:flex; align-items:flex-end; gap:8px; height:120px; padding:10px 4px 0; }
   .chart .bargroup{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
   .chart .bars{ display:flex; gap:3px; align-items:flex-end; height:88px; width:100%; justify-content:center;}
@@ -331,14 +338,18 @@
   <section class="view active" id="view-dashboard">
     <div id="dashFinanceContent">
     <div class="grid2">
-      <div class="stat income"><div class="num" id="statIncome">฿0</div><div class="lbl">รายรับเดือนนี้</div></div>
-      <div class="stat expense"><div class="num" id="statExpense">฿0</div><div class="lbl">รายจ่ายเดือนนี้</div></div>
+      <div class="stat income"><div class="num" id="statIncome">฿0</div><div class="lbl">รายรับเดือนนี้ (รวมทุกทีม)</div></div>
+      <div class="stat expense"><div class="num" id="statExpense">฿0</div><div class="lbl">รายจ่ายเดือนนี้ (รวมทุกทีม)</div></div>
     </div>
     <div class="card">
-      <div class="section-title" style="margin-bottom:10px;">ยอดคงเหลือแยกทีม</div>
+      <div class="section-title" style="margin-bottom:6px;">สรุปรายรับ-รายจ่ายเดือนนี้ แยกทีม</div>
+      <div id="squadMonthSummary"></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px;">ยอดคงเหลือสะสม แยกทีม</div>
       <div class="grid3">
-        <div class="mini-stat"><div class="num" id="balU12">฿0</div><div class="lbl">U12</div></div>
-        <div class="mini-stat"><div class="num" id="balU14">฿0</div><div class="lbl">U14</div></div>
+        <div class="mini-stat"><div class="num" id="balU12">฿0</div><div class="lbl" id="balU12Lbl">U12</div></div>
+        <div class="mini-stat"><div class="num" id="balU14">฿0</div><div class="lbl" id="balU14Lbl">U14</div></div>
         <div class="mini-stat"><div class="num" id="balGeneral">฿0</div><div class="lbl">ส่วนกลาง</div></div>
       </div>
     </div>
@@ -732,6 +743,12 @@
     <div class="field"><label>ผู้ฝึกสอน</label><input id="hCoach" placeholder="ชื่อผู้ฝึกสอน"></div>
     <div class="field"><label>ปณิธานของทีม</label><textarea id="hMission" placeholder="สิ่งที่ทีมยึดถือ / เป้าหมาย"></textarea></div>
     <div class="field"><label>เรื่องราวของทีม</label><textarea id="hHistory" placeholder="ความเป็นมาของทีม เรื่องราวที่อยากบอกเล่า" style="min-height:140px;"></textarea></div>
+    <div class="extra-fields-box">
+      <div class="extra-fields-head"><label style="margin:0;">ชื่อเรียกทีมชุดอายุ</label></div>
+      <div class="field"><label>ชื่อเรียกทีมชุดเล็ก (ค่าเริ่มต้น: U12)</label><input id="hU12Label" placeholder="เช่น U12 หรือ รุ่นเล็ก"></div>
+      <div class="field"><label>ชื่อเรียกทีมชุดใหญ่ (ค่าเริ่มต้น: U14)</label><input id="hU14Label" placeholder="เช่น U14 หรือ รุ่นใหญ่"></div>
+      <p class="hint" style="margin:0;">เปลี่ยนแค่ชื่อที่แสดงผลบนหน้าเว็บเท่านั้น ไม่กระทบข้อมูลเดิมที่บันทึกไว้แล้ว</p>
+    </div>
     <div class="btn-row">
       <button class="btn ghost" id="historyCancel">ยกเลิก</button>
       <button class="btn primary" id="historySave">บันทึก</button>
@@ -834,6 +851,7 @@
       matches = (data.matches || []).map(normalizeMatch);
       playerFields = data.playerFields || [];
       staffFields = data.staffFields || [];
+      applySquadLabels();
       render();
     }catch(e){ toast('โหลดข้อมูลไม่สำเร็จ ตรวจสอบการเชื่อมต่อ', true); }
   }
@@ -882,6 +900,22 @@
     return `${d.getDate()} ${thMonths[d.getMonth()]} ${d.getFullYear()+543}`;
   }
   function isoDate(d){ return d.toISOString().slice(0,10); }
+  // ชื่อเรียกทีม U12/U14 แก้ไขได้จากหน้าประวัติทีม — ค่าที่เก็บจริงในข้อมูล (squad) ยังคงเป็น "U12"/"U14"
+  // เสมอ ฟังก์ชันนี้แปลงเฉพาะข้อความที่แสดงผลให้ผู้ใช้เห็นเท่านั้น
+  function squadLabel(sq){
+    if(sq === 'U12') return (teamInfo.squadU12Label || '').trim() || 'U12';
+    if(sq === 'U14') return (teamInfo.squadU14Label || '').trim() || 'U14';
+    return sq;
+  }
+  function applySquadLabels(){
+    const u12 = squadLabel('U12'), u14 = squadLabel('U14');
+    document.querySelectorAll('button[data-sq="U12"]').forEach(el=> el.textContent = u12);
+    document.querySelectorAll('button[data-sq="U14"]').forEach(el=> el.textContent = u14);
+    document.querySelectorAll('select option[value="U12"]').forEach(o=> o.textContent = u12);
+    document.querySelectorAll('select option[value="U14"]').forEach(o=> o.textContent = u14);
+    if($('balU12Lbl')) $('balU12Lbl').textContent = u12;
+    if($('balU14Lbl')) $('balU14Lbl').textContent = u14;
+  }
 
   // ---------- auth ----------
   function setAuthUI(){
@@ -986,6 +1020,18 @@
   function squadBalance(sq){
     return txs.filter(t=>t.squad===sq).reduce((s,t)=> s + (t.type==='income'? Number(t.amount): -Number(t.amount)), 0);
   }
+  function renderSquadMonthSummary(mk){
+    const squads = ['U12','U14','ส่วนกลาง'];
+    $('squadMonthSummary').innerHTML = squads.map(sq=>{
+      const list = txs.filter(t=>t.squad===sq && monthKey(t.date)===mk);
+      const inc = list.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+      const exp = list.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount),0);
+      return `<div class="squad-summary-row">
+        <div class="squad-summary-name">${escapeHTML(squadLabel(sq))}</div>
+        <div class="squad-summary-figures"><span class="inc">+${fmt(inc)}</span><span class="exp">-${fmt(exp)}</span></div>
+      </div>`;
+    }).join('');
+  }
 
   function renderScoreboard(){
     $('sbPlayers').textContent = players.length;
@@ -1013,6 +1059,7 @@
     $('balU12').textContent = fmt(squadBalance('U12'));
     $('balU14').textContent = fmt(squadBalance('U14'));
     $('balGeneral').textContent = fmt(squadBalance('ส่วนกลาง'));
+    renderSquadMonthSummary(mk);
 
     const months = [];
     const now = new Date();
@@ -1055,7 +1102,7 @@
           <div class="p-name">${escapeHTML(p.name)}</div>
           <div class="p-meta">#${p.number ?? '-'} · ${escapeHTML(p.position||'-')} · อายุ ${p.age||'-'} ปี</div>
         </div>
-        <span class="badge squad">${escapeHTML(p.squad)}</span>
+        <span class="badge squad">${escapeHTML(squadLabel(p.squad))}</span>
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>`;
     }).join('') : `<div class="empty">ยังไม่มีนักเตะในทีมนี้</div>`;
@@ -1080,7 +1127,7 @@
           <div class="p-name">${escapeHTML(s.name)}</div>
           <div class="p-meta">${escapeHTML(s.role||'-')}${s.phone? ' · '+escapeHTML(s.phone):''}</div>
         </div>
-        <span class="badge squad">${escapeHTML(s.squad)}</span>
+        <span class="badge squad">${escapeHTML(squadLabel(s.squad))}</span>
       </div>`;
     }).join('') : `<div class="empty">ยังไม่มีข้อมูลทีมงาน</div>`;
     document.querySelectorAll('#staffList .staff-row').forEach(row=>{
@@ -1098,7 +1145,7 @@
       </div>
       <div>
         <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
-        <div class="tx-squad">${escapeHTML(t.squad)}</div>
+        <div class="tx-squad">${escapeHTML(squadLabel(t.squad))}</div>
       </div>
     </div>`;
   }
@@ -1144,7 +1191,7 @@
     return `<div class="trophy-row" data-id="${a.id}" style="cursor:${isLoggedIn()?'pointer':'default'}">
       <div class="trophy-icon" style="overflow:hidden;${a.photoId?'padding:0;':''}">${iconInner}</div>
       <div class="trophy-info">
-        <div class="trophy-year">${escapeHTML(a.year)} <span class="badge squad" style="margin-left:4px;">${escapeHTML(a.squad||'ทั้งสโมสร')}</span></div>
+        <div class="trophy-year">${escapeHTML(a.year)} <span class="badge squad" style="margin-left:4px;">${escapeHTML(squadLabel(a.squad||'ทั้งสโมสร'))}</span></div>
         <div class="trophy-title">${escapeHTML(a.title)}</div>
         ${a.detail ? `<div class="trophy-detail">${escapeHTML(a.detail)}</div>` : ''}
       </div>
@@ -1195,7 +1242,7 @@
     return `<div class="match-row" data-id="${m.id}">
       <div class="match-date-box"><div class="dd">${dd}</div><div class="mm">${mm}</div></div>
       <div class="match-info">
-        <div class="match-opp">${escapeHTML(m.opponent||'-')} <span class="badge squad">${escapeHTML(m.squad)}</span></div>
+        <div class="match-opp">${escapeHTML(m.opponent||'-')} <span class="badge squad">${escapeHTML(squadLabel(m.squad))}</span></div>
         <div class="match-meta">${m.matchTime? escapeHTML(m.matchTime)+' · ':''}${escapeHTML(m.venue||'-')} <span class="badge ${m.homeAway==='home'?'home':'away'}">${m.homeAway==='home'?'เหย้า':'เยือน'}</span></div>
       </div>
       <div>
@@ -1365,12 +1412,12 @@
     $('playerDetailBody').innerHTML = `
       <div class="detail-photo">${photoInner}</div>
       <div class="detail-name">${escapeHTML(p.name)}</div>
-      <div class="detail-sub">#${p.number ?? '-'} · ${escapeHTML(p.position||'-')} · ทีม ${escapeHTML(p.squad)}</div>
+      <div class="detail-sub">#${p.number ?? '-'} · ${escapeHTML(p.position||'-')} · ทีม ${escapeHTML(squadLabel(p.squad))}</div>
       <div class="detail-grid">
         <div class="dg-item"><div class="lbl">เบอร์เสื้อ</div><div class="val">${p.number ?? '-'}</div></div>
         <div class="dg-item"><div class="lbl">อายุ</div><div class="val">${p.age || '-'} ปี</div></div>
         <div class="dg-item"><div class="lbl">ตำแหน่ง</div><div class="val">${escapeHTML(p.position||'-')}</div></div>
-        <div class="dg-item"><div class="lbl">ทีม</div><div class="val">${escapeHTML(p.squad)}</div></div>
+        <div class="dg-item"><div class="lbl">ทีม</div><div class="val">${escapeHTML(squadLabel(p.squad))}</div></div>
         <div class="dg-item"><div class="lbl">สถานะ</div><div class="val"><span class="badge ${badgeClass}">${badgeText}</span></div></div>
         <div class="dg-item"><div class="lbl">เบอร์โทร (ผู้ปกครอง)</div><div class="val">${escapeHTML(p.phone||'-')}</div></div>
         ${extraHTML}
@@ -1396,7 +1443,7 @@
       <div class="detail-sub">${escapeHTML(s.role||'-')}</div>
       <div class="detail-grid">
         <div class="dg-item"><div class="lbl">ตำแหน่ง</div><div class="val">${escapeHTML(s.role||'-')}</div></div>
-        <div class="dg-item"><div class="lbl">ดูแลทีม</div><div class="val">${escapeHTML(s.squad||'-')}</div></div>
+        <div class="dg-item"><div class="lbl">ดูแลทีม</div><div class="val">${escapeHTML(squadLabel(s.squad||'-'))}</div></div>
         <div class="dg-item full"><div class="lbl">เบอร์โทร</div><div class="val">${escapeHTML(s.phone||'-')}</div></div>
         ${extraHTML}
       </div>`;
@@ -1413,7 +1460,7 @@
     const roster = parseCallUps(m.callUps).map(pid=>players.find(p=>p.id===pid)).filter(Boolean);
     $('matchDetailBody').innerHTML = `
       <div class="detail-name">${escapeHTML(m.opponent||'-')}</div>
-      <div class="detail-sub">ทีม ${escapeHTML(m.squad)}${m.competition? ' · '+escapeHTML(m.competition):''}</div>
+      <div class="detail-sub">ทีม ${escapeHTML(squadLabel(m.squad))}${m.competition? ' · '+escapeHTML(m.competition):''}</div>
       <div class="detail-grid">
         <div class="dg-item"><div class="lbl">วันที่</div><div class="val">${formatThaiDate(m.matchDate)}</div></div>
         <div class="dg-item"><div class="lbl">เวลา</div><div class="val">${escapeHTML(m.matchTime||'-')}</div></div>
@@ -1647,6 +1694,8 @@
     $('hCoach').value = teamInfo.coach || '';
     $('hMission').value = teamInfo.mission || '';
     $('hHistory').value = teamInfo.history || '';
+    $('hU12Label').value = teamInfo.squadU12Label || '';
+    $('hU14Label').value = teamInfo.squadU14Label || '';
     $('historyOverlay').classList.add('active');
   });
   $('historyCancel').addEventListener('click', ()=> $('historyOverlay').classList.remove('active'));
@@ -1654,12 +1703,13 @@
   $('historySave').addEventListener('click', async ()=>{
     const data = {
       founded: $('hFounded').value.trim(), homeGround: $('hGround').value.trim(),
-      coach: $('hCoach').value.trim(), mission: $('hMission').value.trim(), history: $('hHistory').value.trim()
+      coach: $('hCoach').value.trim(), mission: $('hMission').value.trim(), history: $('hHistory').value.trim(),
+      squadU12Label: $('hU12Label').value.trim(), squadU14Label: $('hU14Label').value.trim()
     };
     $('historySave').disabled = true;
     try{
       const res = await apiPost({ action:'updateTeamInfo', data });
-      if(!handleAuthError(res)){ toast('บันทึกประวัติทีมแล้ว'); $('historyOverlay').classList.remove('active'); await loadAll(); }
+      if(!handleAuthError(res)){ toast('บันทึกประวัติทีมแล้ว'); $('historyOverlay').classList.remove('active'); await loadAll(); applySquadLabels(); }
     }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
     $('historySave').disabled = false;
   });
@@ -1717,7 +1767,7 @@
   $('segAway').addEventListener('click', ()=> setHomeAway('away'));
   function renderRosterChecklist(){
     const sq = $('mSquad').value;
-    $('mRosterSquadLabel').textContent = sq;
+    $('mRosterSquadLabel').textContent = squadLabel(sq);
     const list = players.filter(p=>p.squad===sq).sort((a,b)=>(a.number||999)-(b.number||999));
     $('mRosterList').innerHTML = list.length ? list.map(p=>`
       <label class="check-row">
