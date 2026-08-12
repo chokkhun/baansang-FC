@@ -68,6 +68,11 @@
   .auth-menu.open{ display:block; }
   .auth-menu-name{ font-family:'Prompt'; font-weight:700; font-size:14px; }
   .auth-menu-role{ font-size:11.5px; color:rgba(246,243,233,0.55); margin-top:2px; margin-bottom:10px; }
+  .auth-menu-manage{
+    width:100%; border:1px solid var(--gold); background:rgba(227,178,60,0.1); color:var(--gold);
+    font-size:12.5px; font-weight:600; padding:8px 0; border-radius:999px; cursor:pointer; margin-bottom:8px;
+  }
+  .auth-menu-manage:hover{ background:rgba(227,178,60,0.18); }
   .auth-menu-logout{
     width:100%; border:1px solid var(--line); background:transparent; color:var(--chalk);
     font-size:12.5px; font-weight:600; padding:8px 0; border-radius:999px; cursor:pointer;
@@ -272,6 +277,12 @@
   .match-meta{ font-size:12px; color:rgba(246,243,233,0.55); margin-top:2px; }
   .badge.home{ background:rgba(143,212,168,0.15); color:#8FD4A8; }
   .badge.away{ background:rgba(224,128,100,0.15); color:#E08064; }
+  .badge.role-admin{ background:rgba(227,178,60,0.18); color:var(--gold); }
+  .badge.role-staff{ background:rgba(143,212,168,0.15); color:#8FD4A8; }
+
+  .user-row{ display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .user-row:last-child{ border-bottom:none; }
+  .user-row .p-info{ flex:1; min-width:0; }
   .match-result{ font-family:'Prompt'; font-weight:700; font-size:13.5px; color:var(--gold); text-align:right; flex-shrink:0; }
   .match-callup-count{ font-size:10.5px; color:rgba(246,243,233,0.45); margin-top:2px; text-align:right; }
 
@@ -306,6 +317,7 @@
     <div class="auth-menu" id="authMenu">
       <div class="auth-menu-name" id="authMenuName">ยังไม่ได้เข้าสู่ระบบ</div>
       <div class="auth-menu-role" id="authMenuRole"></div>
+      <button class="auth-menu-manage" id="authMenuManageUsers" style="display:none;">จัดการผู้ใช้งาน</button>
       <button class="auth-menu-logout" id="authMenuLogout">ออกจากระบบ</button>
     </div>
   </div>
@@ -665,6 +677,45 @@
   </div>
 </div>
 
+<!-- USERS MANAGE MODAL -->
+<div class="overlay" id="usersOverlay">
+  <div class="sheet">
+    <h3>จัดการผู้ใช้งาน</h3>
+    <p class="hint" style="margin-top:-6px;">เพิ่มบัญชีให้แอดมินคนอื่นหรือสตาฟฟ์/โค้ชเข้าใช้งานเว็บนี้ได้โดยตรง ไม่ต้องเข้าไปแก้ที่ Google Sheets</p>
+    <div id="usersList"></div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn ghost" id="usersClose">ปิด</button>
+      <button class="btn primary" id="addUserBtn">+ เพิ่มผู้ใช้งานใหม่</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER ADD/EDIT MODAL -->
+<div class="overlay" id="userEditOverlay">
+  <div class="sheet">
+    <h3 id="userEditTitle">เพิ่มผู้ใช้งานใหม่</h3>
+    <input type="hidden" id="ueId">
+    <div class="field"><label>ชื่อผู้ใช้ (Username)</label><input id="ueUsername" placeholder="เช่น coach_a" autocomplete="off"></div>
+    <div class="field"><label>ชื่อที่แสดงผล</label><input id="ueName" placeholder="เช่น โค้ชเอ"></div>
+    <div class="field"><label>สิทธิ์การใช้งาน</label>
+      <select id="ueRole">
+        <option value="staff">ทีมงาน (แก้ไขข้อมูลได้ทุกอย่าง ยกเว้นงบการเงิน)</option>
+        <option value="admin">แอดมิน (แก้ไขได้ทั้งหมด รวมงบการเงิน)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label id="uePwLabel">รหัสผ่าน</label>
+      <input id="uePassword" type="password" placeholder="ตั้งรหัสผ่าน" autocomplete="new-password">
+      <p class="hint" id="uePwHint" style="display:none;">เว้นว่างไว้ได้ถ้าไม่ต้องการเปลี่ยนรหัสผ่านเดิม</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="userEditCancel">ยกเลิก</button>
+      <button class="btn danger" id="userDelete" style="display:none;">ลบผู้ใช้งาน</button>
+      <button class="btn primary" id="userEditSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- CATEGORY MANAGE MODAL -->
 <div class="overlay" id="catOverlay">
   <div class="sheet">
@@ -831,8 +882,8 @@
   // ---------- API ----------
   // สำคัญ: ใช้ cache:'no-store' + timestamp กันตัวเบราว์เซอร์/มือถือ cache ผลลัพธ์ doGet ของ Apps Script ไว้
   // (สาเหตุหลักที่แก้ไขรายการแล้วโหลดกลับมาเจอข้อมูลเก่า)
-  async function apiGet(){
-    let url = SCRIPT_URL + '?action=getData&_t=' + Date.now();
+  async function apiGet(action){
+    let url = SCRIPT_URL + '?action=' + (action || 'getData') + '&_t=' + Date.now();
     if(currentUser){
       url += '&username=' + encodeURIComponent(currentUser.username) + '&password=' + encodeURIComponent(currentUser.password);
     }
@@ -951,6 +1002,8 @@
     $('trophyHint').textContent = loggedIn ? 'แตะรายการเพื่อดูรายละเอียด / แก้ไข' : 'แตะรายการเพื่อดูรายละเอียด';
     // จัดการหมวดหมู่และการแก้ไขรายรับ-รายจ่าย สงวนไว้เฉพาะแอดมินเท่านั้น (งบการเงิน)
     $('manageCatBtn').style.display = admin ? 'inline-block' : 'none';
+    // จัดการผู้ใช้งาน (เพิ่ม/แก้ไข/ลบบัญชีล็อกอิน) สงวนไว้เฉพาะแอดมินเท่านั้น
+    $('authMenuManageUsers').style.display = admin ? 'block' : 'none';
     // ส่วนอื่นๆ (ประวัติทีม, นักเตะ, ทีมงาน, ตารางแข่งขัน, ทำเนียบแชมป์) ทุกคนที่ล็อกอินแล้วแก้ไขได้
     $('editHistoryBtn').style.display = loggedIn ? 'flex' : 'none';
 
@@ -968,6 +1021,10 @@
   });
   document.addEventListener('click', (e)=>{
     if(!$('authMenu').contains(e.target) && e.target !== $('authBtn')){ $('authMenu').classList.remove('open'); }
+  });
+  $('authMenuManageUsers').addEventListener('click', ()=>{
+    $('authMenu').classList.remove('open');
+    openUsersManager();
   });
   $('authMenuLogout').addEventListener('click', ()=>{
     currentUser = null; sessionStorage.removeItem('bsfc_user');
@@ -1673,6 +1730,91 @@
       const res = await apiPost({ action:'addCategory', data:{ type:newCatType, name } });
       if(!handleAuthError(res)){ toast('เพิ่มหมวดหมู่แล้ว'); $('newCatName').value=''; await loadAll(); renderCategoryManager(); fillCategoryOptions(); }
     }catch(e){ toast('เพิ่มไม่สำเร็จ', true); }
+  });
+
+  // ---------- users manager (แอดมินเท่านั้น) ----------
+  let usersCache = [];
+  async function openUsersManager(){
+    if(!isAdmin()) return;
+    $('usersList').innerHTML = `<div class="empty">กำลังโหลด...</div>`;
+    $('usersOverlay').classList.add('active');
+    await loadUsersList();
+  }
+  async function loadUsersList(){
+    try{
+      const data = await apiGet('listUsers');
+      if(data && data.error){ toast('โหลดรายชื่อผู้ใช้งานไม่สำเร็จ: ' + data.error, true); usersCache = []; }
+      else { usersCache = data.users || []; }
+    }catch(e){ toast('โหลดรายชื่อผู้ใช้งานไม่สำเร็จ', true); usersCache = []; }
+    renderUsersList();
+  }
+  function renderUsersList(){
+    $('usersList').innerHTML = usersCache.length ? usersCache.map(u=>{
+      const roleTxt = u.role==='admin' ? 'แอดมิน' : 'ทีมงาน';
+      const roleCls = u.role==='admin' ? 'role-admin' : 'role-staff';
+      return `<div class="user-row" data-id="${u.id}">
+        <div class="p-info">
+          <div class="p-name">${escapeHTML(u.name||u.username)}</div>
+          <div class="p-meta">@${escapeHTML(u.username)}</div>
+        </div>
+        <span class="badge ${roleCls}">${roleTxt}</span>
+      </div>`;
+    }).join('') : `<div class="empty">ยังไม่มีผู้ใช้งานเพิ่มเติม</div>`;
+    document.querySelectorAll('#usersList .user-row').forEach(row=>{
+      row.addEventListener('click', ()=> openUserEditModal(row.dataset.id));
+    });
+  }
+  $('usersClose').addEventListener('click', ()=> $('usersOverlay').classList.remove('active'));
+  $('usersOverlay').addEventListener('click', e=>{ if(e.target.id==='usersOverlay') $('usersOverlay').classList.remove('active'); });
+  $('addUserBtn').addEventListener('click', ()=> openUserEditModal(null));
+
+  function openUserEditModal(id){
+    const u = id ? usersCache.find(x=>x.id===id) : null;
+    $('userEditTitle').textContent = u ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่';
+    $('ueId').value = u ? u.id : '';
+    $('ueUsername').value = u ? u.username : '';
+    $('ueUsername').disabled = !!u; // ห้ามเปลี่ยนชื่อผู้ใช้หลังสร้างแล้ว กันสับสน/ชนกัน
+    $('ueName').value = u ? u.name : '';
+    $('ueRole').value = u ? (u.role || 'staff') : 'staff';
+    $('ueRole').disabled = !!(u && u.username && u.username.toLowerCase()==='admin'); // บัญชี admin หลักคงสิทธิ์แอดมินเสมอ
+    $('uePassword').value = '';
+    $('uePwLabel').textContent = u ? 'ตั้งรหัสผ่านใหม่' : 'รหัสผ่าน';
+    $('uePwHint').style.display = u ? 'block' : 'none';
+    $('userDelete').style.display = (u && u.username && u.username.toLowerCase()!=='admin') ? 'block' : 'none';
+    $('userEditOverlay').classList.add('active');
+  }
+  $('userEditCancel').addEventListener('click', ()=> $('userEditOverlay').classList.remove('active'));
+  $('userEditOverlay').addEventListener('click', e=>{ if(e.target.id==='userEditOverlay') $('userEditOverlay').classList.remove('active'); });
+  $('userEditSave').addEventListener('click', async ()=>{
+    const id = $('ueId').value;
+    const username = $('ueUsername').value.trim();
+    const name = $('ueName').value.trim();
+    const role = $('ueRole').value;
+    const password = $('uePassword').value;
+    if(!name){ toast('กรุณากรอกชื่อที่แสดงผล', true); return; }
+    if(!id){
+      if(!username){ toast('กรุณากรอกชื่อผู้ใช้ (Username)', true); return; }
+      if(!password){ toast('กรุณาตั้งรหัสผ่าน', true); return; }
+    }
+    const data = id ? { id, name, role, password } : { username, name, role, password };
+    $('userEditSave').disabled = true;
+    try{
+      const res = await apiPost({ action: id ? 'updateUser' : 'addUser', data });
+      if(!handleAuthError(res)){
+        toast(id ? 'บันทึกการแก้ไขแล้ว' : 'เพิ่มผู้ใช้งานแล้ว');
+        $('userEditOverlay').classList.remove('active');
+        await loadUsersList();
+      }
+    }catch(e){ toast('บันทึกไม่สำเร็จ', true); }
+    $('userEditSave').disabled = false;
+  });
+  $('userDelete').addEventListener('click', async ()=>{
+    const id = $('ueId').value;
+    if(!confirm('ลบผู้ใช้งานนี้ใช่หรือไม่? บัญชีนี้จะเข้าสู่ระบบไม่ได้อีกต่อไป')) return;
+    try{
+      const res = await apiPost({ action:'deleteUser', data:{ id } });
+      if(!handleAuthError(res)){ toast('ลบผู้ใช้งานแล้ว'); $('userEditOverlay').classList.remove('active'); await loadUsersList(); }
+    }catch(e){ toast('ลบไม่สำเร็จ', true); }
   });
 
   // ---------- tx modal ----------
