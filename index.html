@@ -904,6 +904,33 @@
   const isAdmin = () => !!(currentUser && currentUser.role === 'admin');
   const isLoggedIn = () => !!currentUser;
 
+  // ---------- local cache (โหลดหน้าเว็บครั้งถัดไปให้เห็นข้อมูลทันที ไม่ต้องรอเน็ต) ----------
+  // เก็บเฉพาะข้อมูลทั่วไปที่ไม่ใช่งบการเงิน (เพื่อไม่ให้ข้อมูลการเงินค้างอยู่ในเครื่อง/เบราว์เซอร์คนอื่นบนอุปกรณ์ที่ใช้ร่วมกัน)
+  // ใช้หลักการ "โชว์ของเก่าไปก่อนทันที แล้วค่อยแอบอัปเดตเป็นของใหม่เงียบๆ เมื่อโหลดเสร็จ" (stale-while-revalidate)
+  const LOCAL_CACHE_KEY = 'bsfc_public_cache_v1';
+  function saveLocalCache(){
+    try{
+      const snap = { players, staff, categories, teamInfo, achievements, matches, playerFields, staffFields };
+      localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(snap));
+    }catch(e){ /* localStorage เต็มหรือใช้งานไม่ได้ ข้ามไปเฉยๆ ไม่กระทบการทำงาน */ }
+  }
+  function loadLocalCache(){
+    try{
+      const raw = localStorage.getItem(LOCAL_CACHE_KEY);
+      if(!raw) return false;
+      const snap = JSON.parse(raw);
+      players = (snap.players || []).map(normalizePlayer);
+      staff = (snap.staff || []).map(normalizeStaff);
+      categories = snap.categories || [];
+      teamInfo = snap.teamInfo || {};
+      achievements = (snap.achievements || []).map(normalizeAchievement);
+      matches = (snap.matches || []).map(normalizeMatch);
+      playerFields = snap.playerFields || [];
+      staffFields = snap.staffFields || [];
+      return true;
+    }catch(e){ return false; }
+  }
+
   // ---------- API ----------
   // สำคัญ: ใช้ cache:'no-store' + timestamp กันตัวเบราว์เซอร์/มือถือ cache ผลลัพธ์ doGet ของ Apps Script ไว้
   // (สาเหตุหลักที่แก้ไขรายการแล้วโหลดกลับมาเจอข้อมูลเก่า)
@@ -912,8 +939,12 @@
     if(currentUser){
       url += '&username=' + encodeURIComponent(currentUser.username) + '&password=' + encodeURIComponent(currentUser.password);
     }
+    const t0 = performance.now();
     const res = await fetch(url, { cache: 'no-store' });
-    return res.json();
+    const json = await res.json();
+    // log เวลาที่ใช้จริงลง console ไว้เผื่อต้องเช็คว่าช้าตรงไหน (เปิด F12 > Console ดูได้)
+    console.log('[บ้านสร้าง FC] โหลดข้อมูลจาก Apps Script ใช้เวลา', Math.round(performance.now() - t0), 'ms');
+    return json;
   }
   async function apiPost(payload){
     const body = Object.assign({}, payload, currentUser ? { username: currentUser.username, password: currentUser.password } : {});
@@ -940,6 +971,7 @@
       staffFields = data.staffFields || [];
       applySquadLabels();
       render();
+      saveLocalCache();
     }catch(e){ toast('โหลดข้อมูลไม่สำเร็จ ตรวจสอบการเชื่อมต่อ', true); }
   }
   function normalizePlayer(p){
@@ -2036,7 +2068,15 @@
     const savedUser = sessionStorage.getItem('bsfc_user');
     if(savedUser) currentUser = JSON.parse(savedUser);
   }catch(e){ currentUser = null; }
+
+  // ถ้าเคยเปิดเว็บนี้บนเครื่อง/เบราว์เซอร์นี้มาก่อน ใช้ข้อมูลที่เก็บไว้แสดงผลทันทีก่อนเลย (ไม่ต้องรอเน็ต)
+  // แล้วค่อยแอบโหลดข้อมูลใหม่จริงมาอัปเดตทับเงียบๆ อีกที — ทำให้เข้าเว็บครั้งที่ 2 ขึ้นไปรู้สึกเร็วขึ้นมาก
+  const hadLocalCache = loadLocalCache();
+  applySquadLabels();
   setAuthUI();
+  if(hadLocalCache){
+    $('initialLoader').classList.add('hidden');
+  }
   loadAll().then(setAuthUI).finally(()=>{
     $('initialLoader').classList.add('hidden');
   });
