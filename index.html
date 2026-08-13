@@ -13,7 +13,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="บ้านสร้าง FC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://drive.google.com">
+<link rel="dns-prefetch" href="https://lh3.googleusercontent.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --pitch-dark:#122A22; --pitch:#1E4A38; --pitch-mid:#2F6F4E;
@@ -283,6 +288,21 @@
   .user-row{ display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid var(--line); cursor:pointer; }
   .user-row:last-child{ border-bottom:none; }
   .user-row .p-info{ flex:1; min-width:0; }
+
+  /* ---- initial loading overlay ---- */
+  #initialLoader{
+    position:fixed; inset:0; z-index:999; background:var(--pitch-dark);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    transition:opacity .35s ease, visibility .35s ease;
+  }
+  #initialLoader.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  #initialLoader .il-crest{
+    width:60px; height:60px; border-radius:50%; background:var(--pitch-mid); border:2.5px solid var(--gold);
+    display:flex; align-items:center; justify-content:center; font-family:'Prompt'; font-weight:800;
+    font-size:20px; color:var(--gold); animation:il-pulse 1.4s ease-in-out infinite;
+  }
+  #initialLoader .il-text{ font-size:12.5px; color:rgba(246,243,233,0.55); }
+  @keyframes il-pulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.08); opacity:0.75; } }
   .match-result{ font-family:'Prompt'; font-weight:700; font-size:13.5px; color:var(--gold); text-align:right; flex-shrink:0; }
   .match-callup-count{ font-size:10.5px; color:rgba(246,243,233,0.45); margin-top:2px; text-align:right; }
 
@@ -303,6 +323,11 @@
 </style>
 </head>
 <body>
+
+<div id="initialLoader">
+  <div class="il-crest">บส</div>
+  <div class="il-text">กำลังโหลดข้อมูลทีม...</div>
+</div>
 
 <header class="top">
   <div class="brand">
@@ -1164,7 +1189,7 @@
     $('playerList').innerHTML = sorted.length ? sorted.map(p=>{
       const badgeClass = p.status==='active'?'active':p.status==='injured'?'injured':'leave';
       const badgeText = p.status==='active'?'พร้อมลงเล่น':p.status==='injured'?'บาดเจ็บ':'ลา/ไม่พร้อม';
-      const jerseyInner = p.photoId ? `<img src="${photoUrl(p.photoId,120)}" alt="${escapeHTML(p.name)}">` : (p.number ?? '-');
+      const jerseyInner = p.photoId ? `<img src="${photoUrl(p.photoId,120)}" alt="${escapeHTML(p.name)}" loading="lazy" decoding="async">` : (p.number ?? '-');
       return `<div class="player-row" data-id="${p.id}" style="cursor:pointer">
         <div class="jersey">${jerseyInner}</div>
         <div class="p-info">
@@ -1189,7 +1214,7 @@
   function renderStaff(){
     $('staffCount').textContent = staff.length ? `(${staff.length} คน)` : '';
     $('staffList').innerHTML = staff.length ? staff.map(s=>{
-      const avatarInner = s.photoId ? `<img src="${photoUrl(s.photoId,120)}" alt="${escapeHTML(s.name)}">` : '👤';
+      const avatarInner = s.photoId ? `<img src="${photoUrl(s.photoId,120)}" alt="${escapeHTML(s.name)}" loading="lazy" decoding="async">` : '👤';
       return `<div class="staff-row" data-id="${s.id}" style="cursor:pointer">
         <div class="jersey avatar">${avatarInner}</div>
         <div class="p-info">
@@ -1255,7 +1280,7 @@
 
   function trophyRowHTML(a){
     const iconInner = a.photoId
-      ? `<img src="${photoUrl(a.photoId,120)}" alt="${escapeHTML(a.title)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
+      ? `<img src="${photoUrl(a.photoId,120)}" alt="${escapeHTML(a.title)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
       : '🏆';
     return `<div class="trophy-row" data-id="${a.id}" style="cursor:pointer">
       <div class="trophy-icon" style="overflow:hidden;${a.photoId?'padding:0;':''}">${iconInner}</div>
@@ -2012,7 +2037,11 @@
     if(savedUser) currentUser = JSON.parse(savedUser);
   }catch(e){ currentUser = null; }
   setAuthUI();
-  loadAll().then(setAuthUI);
+  loadAll().then(setAuthUI).finally(()=>{
+    $('initialLoader').classList.add('hidden');
+  });
+  // กันจอค้างถ้าเน็ตหลุดหรือ Apps Script ไม่ตอบสนองนานผิดปกติ (ไม่ปิดเองใน 12 วิ ให้ปิดทิ้งแล้วโชว์หน้าเว็บตามข้อมูลที่มี)
+  setTimeout(()=> $('initialLoader').classList.add('hidden'), 12000);
 })();
 </script>
 </body>
