@@ -934,22 +934,41 @@
   // ---------- API ----------
   // สำคัญ: ใช้ cache:'no-store' + timestamp กันตัวเบราว์เซอร์/มือถือ cache ผลลัพธ์ doGet ของ Apps Script ไว้
   // (สาเหตุหลักที่แก้ไขรายการแล้วโหลดกลับมาเจอข้อมูลเก่า)
+  //
+  // Apps Script Web App บางครั้งเชื่อมต่อไม่ติดในความพยายามแรก (เช่น ตอน "ตื่น" จาก cold start หรือเน็ตกระตุก
+  // ชั่วขณะ) ฟังก์ชันนี้จะลองเชื่อมต่อซ้ำให้อัตโนมัติเบื้องหลังก่อนที่จะแจ้งว่าเชื่อมต่อไม่สำเร็จ
+  // เพื่อไม่ให้ผู้ใช้ต้องกดปุ่ม (เช่นเข้าสู่ระบบ) ซ้ำเองหลายรอบเวลาที่ปัญหาเป็นแค่ปัญหาชั่วคราว
+  async function fetchJSON(url, options, retries){
+    if(retries === undefined) retries = 2;
+    let lastErr;
+    for(let attempt = 0; attempt <= retries; attempt++){
+      try{
+        const res = await fetch(url, options);
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      }catch(e){
+        lastErr = e;
+        if(attempt < retries){
+          await new Promise(r => setTimeout(r, 500 * (attempt + 1))); // รอ 500ms, 1000ms ก่อนลองใหม่
+        }
+      }
+    }
+    throw lastErr;
+  }
   async function apiGet(action){
     let url = SCRIPT_URL + '?action=' + (action || 'getData') + '&_t=' + Date.now();
     if(currentUser){
       url += '&username=' + encodeURIComponent(currentUser.username) + '&password=' + encodeURIComponent(currentUser.password);
     }
     const t0 = performance.now();
-    const res = await fetch(url, { cache: 'no-store' });
-    const json = await res.json();
+    const json = await fetchJSON(url, { cache: 'no-store' });
     // log เวลาที่ใช้จริงลง console ไว้เผื่อต้องเช็คว่าช้าตรงไหน (เปิด F12 > Console ดูได้)
     console.log('[บ้านสร้าง FC] โหลดข้อมูลจาก Apps Script ใช้เวลา', Math.round(performance.now() - t0), 'ms');
     return json;
   }
   async function apiPost(payload){
     const body = Object.assign({}, payload, currentUser ? { username: currentUser.username, password: currentUser.password } : {});
-    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body), cache: 'no-store' });
-    return res.json();
+    return fetchJSON(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body), cache: 'no-store' });
   }
 
   async function loadAll(){
@@ -1097,17 +1116,20 @@
     if(!username || !pw){ toast('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน', true); return; }
     if(!configured()){ toast('ยังไม่ได้เชื่อมต่อ Google Sheets', true); return; }
     $('loginSubmit').disabled = true;
+    const originalLabel = $('loginSubmit').textContent;
+    $('loginSubmit').textContent = 'กำลังเชื่อมต่อ...';
     try{
-      const res = await fetch(SCRIPT_URL, { method:'POST', cache:'no-store',
-        body: JSON.stringify({ action:'login', username, password: pw }) }).then(r=>r.json());
+      const res = await fetchJSON(SCRIPT_URL, { method:'POST', cache:'no-store',
+        body: JSON.stringify({ action:'login', username, password: pw }) });
       if(res.ok){
         currentUser = { username: res.username, password: pw, role: res.role, name: res.name };
         sessionStorage.setItem('bsfc_user', JSON.stringify(currentUser));
         $('loginOverlay').classList.remove('active');
         toast('เข้าสู่ระบบสำเร็จ'); await loadAll(); setAuthUI();
       } else { toast('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', true); }
-    }catch(e){ toast('เชื่อมต่อไม่สำเร็จ', true); }
+    }catch(e){ toast('เชื่อมต่อไม่สำเร็จ ลองอีกครั้งในอีกสักครู่', true); }
     $('loginSubmit').disabled = false;
+    $('loginSubmit').textContent = originalLabel;
   });
   function handleAuthError(res){
     if(res && (res.error === 'unauthorized' || res.error === 'forbidden')){
