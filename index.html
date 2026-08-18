@@ -1289,7 +1289,7 @@
       <div class="tx-dot ${t.type}"></div>
       <div class="tx-info">
         <div class="tx-cat">${escapeHTML(cat)}</div>
-        <div class="tx-meta">${t.date}${t.note? ' · '+escapeHTML(t.note):''}</div>
+        <div class="tx-meta">${formatThaiDate(t.date)}${t.note? ' · '+escapeHTML(t.note):''}</div>
       </div>
       <div>
         <div class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
